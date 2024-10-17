@@ -1,46 +1,26 @@
-from time import sleep
 from celery import shared_task
 import os
 import requests
-import openai
 import dotenv
-from langchain.llms import OpenAI
-from langchain.agents import load_tools
-from langchain.agents import initialize_agent
 from langchain.utilities import SerpAPIWrapper
 from langchain.prompts import PromptTemplate
 from langchain.agents import Tool
 from langchain.chains import create_extraction_chain
-from langchain.chat_models import ChatOpenAI
 import dotenv
 from serpapi import GoogleSearch
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.document_loaders import UnstructuredPDFLoader
-from langchain.indexes import VectorstoreIndexCreator
 from langchain.chains import LLMChain
-from pypdf import PdfReader
-from pypdf.errors import PdfStreamError
-import csv
-import pandas as pd
-from requests.packages import urllib3
-from langchain.llms import AzureOpenAI
 from langchain.chat_models import AzureChatOpenAI
-from rest_framework.response import Response
 import signal
 from contextlib import contextmanager
-from langchain.document_loaders import TextLoader
 from langchain.document_loaders import OnlinePDFLoader
 from langchain.document_loaders import AsyncChromiumLoader
 from langchain.document_transformers import BeautifulSoupTransformer
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from api.utils import search_and_parse_pdfs
 import time
-from langchain.document_loaders import SeleniumURLLoader
-from langchain.document_loaders import PlaywrightURLLoader
-from langchain.document_loaders import AsyncHtmlLoader
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 import json
@@ -49,7 +29,6 @@ import pdfplumber
 from datetime import datetime
 from django.core.files.temp import NamedTemporaryFile
 from django.core import files
-from io import BytesIO
 from datetime import datetime
 import re
 from dateutil.relativedelta import relativedelta
@@ -60,8 +39,8 @@ from PIL import Image
 import img2pdf
 from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import PromptTemplate
-from pydantic import BaseModel, Field, ValidationError
-from typing import Optional, Sequence
+from pydantic import BaseModel
+from typing import Sequence
 
 #from PIL import Image
 

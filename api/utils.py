@@ -1,42 +1,12 @@
-from time import sleep
-from celery import shared_task
-import os
 import requests
-import openai
-import dotenv
-from langchain.llms import OpenAI
-from langchain.agents import load_tools
-from langchain.agents import initialize_agent
-from langchain.utilities import SerpAPIWrapper
 from langchain.prompts import PromptTemplate
-from langchain.agents import Tool
 from langchain.chains import create_extraction_chain
-from langchain.chat_models import ChatOpenAI
-import dotenv
-from serpapi import GoogleSearch
 from langchain.document_loaders import PyPDFLoader
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import CharacterTextSplitter
-from langchain.document_loaders import UnstructuredPDFLoader
-from langchain.indexes import VectorstoreIndexCreator
 from langchain.chains import LLMChain
-from pypdf import PdfReader
-from pypdf.errors import PdfStreamError
-import csv
-import pandas as pd
-from requests.packages import urllib3
-from langchain.llms import AzureOpenAI
 from langchain.chat_models import AzureChatOpenAI
-from rest_framework.response import Response
-import signal
-from contextlib import contextmanager
-from langchain.document_loaders import TextLoader
 from langchain.document_loaders import OnlinePDFLoader
-from langchain.document_loaders import AsyncChromiumLoader
-from langchain.document_transformers import BeautifulSoupTransformer
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-
 
 ### Iterate over pdfs returned in organic search results to see if they're relevant to the model number provided and what type of document it is
 def search_and_parse_pdfs(organic_search_results, model_number, resource_urls, related_models, potential_resources, bad_urls):
