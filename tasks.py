@@ -1,5 +1,4 @@
 from time import sleep
-from celery import shared_task
 import os
 import requests
 import dotenv
@@ -28,8 +27,7 @@ import json
 from langchain.callbacks import get_openai_callback
 import pdfplumber
 from datetime import datetime
-from django.core.files.temp import NamedTemporaryFile
-from django.core import files
+from tempfile import NamedTemporaryFile
 from datetime import datetime
 import re
 from dateutil.relativedelta import relativedelta
@@ -42,6 +40,11 @@ from langchain.output_parsers import PydanticOutputParser
 from langchain.prompts import PromptTemplate
 from pydantic import BaseModel
 from typing import Sequence
+from celery import Celery
+from celery.utils.log import get_task_logger
+
+app = Celery('tasks', broker=os.getenv("CELERY_BROKER_URL"))
+logger = get_task_logger(__name__)
 
 #from PIL import Image
 
@@ -68,7 +71,7 @@ def time_limit(seconds):
 
 
 
-@shared_task()
+@app.task
 def identify_new_model(model_number, supporting_data):
 
   # url = "https://www.gemaire.com/rheem-ra1648aj1na-classic-4-ton-16-seer-condenser-208-230-volt-1-phase-60-hz-ra1648aj1na"
@@ -1077,7 +1080,7 @@ def identify_new_model(model_number, supporting_data):
     return model_object
 
 ## GET CARRIER WARRANTY
-@shared_task()
+@app.task
 def getCarrierWarranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name):
   
   print(f"### Starting Carrier Warranty Lookup: {serial_number}")
@@ -1096,17 +1099,12 @@ def getCarrierWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
         #print(page.get_by_role("heading", name="Select Model"))
         page.get_by_role("heading", name="Select Model").click()
         #print(page.locator(".main-page-2b_").get_by_role("list").get_by_role("link").all())
-        #print("here")
         page.locator(".main-page-2b_").get_by_role("list").get_by_role("link").nth(0).click()
 
         # "main-page-2b_
-        # print("here")
         # print(page.locator('[href*="/warranty/"]'))
-        # print("here")
         # page.locator('[href*="/warranty/"]').click()
-        # # print("here")
         # # first_link[0].click()
-        # # print("here")
       except Exception as e:
         print(f"something went wrong: {e}")
       try:
@@ -1141,7 +1139,6 @@ def getCarrierWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
         for row in rows:
           row.evaluate("(el) => el.style.background = '#fff9db'")
         page.get_by_role("heading", name="Warranty", exact=True).click()
-        print("here")
  
         time.sleep(5)
 
@@ -1150,20 +1147,13 @@ def getCarrierWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
           img_temp_file = NamedTemporaryFile(delete=True)
           pdf_temp_file = NamedTemporaryFile(delete=True)
           page.query_selector(".wrapPanel-root-3px").screenshot(path=img_temp_file.name)
-          print("here")
           image = Image.open(img_temp_file.name)
-          print("here")
           pdf_bytes = img2pdf.convert(image.filename)
-          print("here")
           pdf = open(pdf_temp_file.name, "wb")
-          print("here")
           pdf.write(pdf_bytes)
-          print("here")
           pdf.close()
-          print("here")
           img_temp_file.flush()
           pdf_temp_file.flush()
-          pdf = files.File(pdf_temp_file)
         except Exception as e:
           print(f"something went wrong: {e}")
 
@@ -1175,7 +1165,7 @@ def getCarrierWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
       # ---------------------
       context.close()
       browser.close()
-      return {"html": html, "pdf": pdf}
+      return {"html": html, "pdf": pdf_temp_file.file}
 
       
 
@@ -1862,7 +1852,7 @@ def getCarrierWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
       print(r)
 
 ## GET TRANE WARRANTY
-@shared_task()
+@app.task
 def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name):
   
   print(f"### Starting Trane Warranty Lookup: {serial_number}")
@@ -1912,13 +1902,10 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
       
       texts = ""
       if download is not(None):
+        with NamedTemporaryFile(delete=True) as temp_file:
+          download.save_as(temp_file.name)
+          temp_file.flush()
 
-        temp_file = NamedTemporaryFile(delete=True)
-        download.save_as(temp_file.name)
-        temp_file.flush()
-        pdf = files.File(temp_file)
-
-        with open(pdf.name, 'rb') as pdf:
           #pdf = pdfplumber.open(pdf)
           reader = pdfplumber.open(pdf)
           #reader = PdfReader(pdf)
@@ -1926,64 +1913,13 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
           for page in reader.pages:
             text = page.extract_text()
             texts += text
+          context.close()
+          browser.close()
+          return {"text": texts, "pdf": pdf}
 
-          #text = page.extract_text()
-          #text = pdf.extract_text()
-        #print(text)       
-
-        #pdf.save_as(Path.home().joinpath('Downloads', pdf.suggested_filename))
-        # bytes_stream = BytesIO(pdf)
-        # pdf = pdfplumber.open(bytes_stream)
-        # page = pdf.pages[0]
-        # text = page.extract_text()
-        # print(text)       
-
-        # with BytesIO(pdf) as open_pdf_file:
-          
-
-        #   page = reader.pages[0]
-        #   text = page.extract_text()
-        #   print(f"this is the extacted text: {text}")
-
-        #print(pdf)
-        # bytes_stream = BytesIO(pdf).getvalue()
-        # print(bytes_stream.getvalue())
-        # with open(bytes_stream, 'rb') as pdf_file:
-        #   reader = read_pdf = PdfReader(pdf_file)
-        #   page = reader.getPage(0)
-        #   text = page.extractText()
-        #   print(text)
-
-        
-        # reader = PdfReader(bytes_stream)
-        # page = reader.pages[0]
-        # text = page.extract_text()
-        # print(text)
-        #print(page_content)
-        # with open(pdf, "rb") as pdf_file:
-        #   bytes = io.BytesIO(pdf_file)
-        #   read_pdf = PdfReader(bytes)
-        #   number_of_pages = read_pdf.getNumPages()
-        #   page = read_pdf.pages[0]
-        #   page_content = page.extractText()
-        # print(page_content)
-        
-        #print(pdf)
-        #val = page.locator('#warrantylookup')
-        #print(html)
-      
-
-        # ---------------------
-        context.close()
-        browser.close()
-        return {"text": texts, "pdf": pdf}
-      else:
-        context.close()
-        browser.close()
-        return None
-
-
-      
+      context.close()
+      browser.close()
+      return None
 
   html = None
   pdf = None
@@ -2135,7 +2071,7 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
 
 
 ## GET York WARRANTY
-@shared_task()
+@app.task
 def getYorkWarranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name):
   
   print(f"### Starting York Warranty Lookup: {serial_number}")
@@ -2173,12 +2109,11 @@ def getYorkWarranty(serial_number, instant, equipment_scan_id, equipment_id, own
         temp_file = NamedTemporaryFile(delete=True)
         download.save_as(temp_file.name)
         temp_file.flush()
-        pdf = files.File(temp_file)
 
         # ---------------------
         context.close()
         browser.close()
-        return {"html": html, "pdf": pdf}
+        return {"html": html, "pdf": temp_file.file}
       else:
         context.close()
         browser.close()
@@ -2324,7 +2259,7 @@ def getYorkWarranty(serial_number, instant, equipment_scan_id, equipment_id, own
 
 
 ## GET LENNOX WARRANTY
-@shared_task()
+@app.task
 def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name):
   
   print(f"### Starting Lennox Warranty Lookup: {serial_number}")
@@ -2339,7 +2274,6 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
       text = None
       download = None
       html = None
-      pdf = None
       browser = playwright.chromium.launch(headless=True)
       context = browser.new_context()
       page = context.new_page()
@@ -2409,14 +2343,12 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
       texts = ""
       if download is not(None):
 
-        temp_file = NamedTemporaryFile(delete=True)
-        download.save_as(temp_file.name)
-        temp_file.flush()
-        pdf = files.File(temp_file)
+        with NamedTemporaryFile(delete=True) as temp_file:
+          download.save_as(temp_file.name)
+          temp_file.flush()
 
-        with open(pdf.name, 'rb') as pdf:
           #pdf = pdfplumber.open(pdf)
-          reader = pdfplumber.open(pdf)
+          reader = pdfplumber.open(temp_file)
           #reader = PdfReader(pdf)
           texts = ""
           for page in reader.pages:
@@ -2426,7 +2358,7 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
         # ---------------------
         context.close()
         browser.close()
-        return {"text": texts, "pdf": pdf, "html": None}
+        return {"text": texts, "pdf": temp_file.file, "html": None}
       elif html is not(None):
         return {"text": None, "pdf": None, "html": html}
       else:
@@ -2748,7 +2680,6 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
 
         #print("here first")
         warranties = [obj for obj in lennox_warranty if obj['serial_number'] == serial_number] 
-        #print("here")
         for warranty in warranties:
           #06/22/2014
           end_date = warranty["parts_warranty_expiration"]
@@ -2823,7 +2754,7 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
 
 
 ## FIND EQUIPMENT MANUALS
-@shared_task()
+@app.task
 def manual_lookup(model_number, manufacturer, equipment_type, model_id):
   dotenv.load_dotenv()
 
@@ -2831,7 +2762,7 @@ def manual_lookup(model_number, manufacturer, equipment_type, model_id):
 
 
 ## GET GOODMAN WARRANTY
-@shared_task()
+@app.task
 def getGoodmanWarranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name):
   
   print(f"### Starting Goodman Warranty Lookup: {serial_number}")
@@ -2878,27 +2809,24 @@ def getGoodmanWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
       
       if download is not(None):
 
-        temp_file = NamedTemporaryFile(delete=True)
-        download.save_as(temp_file.name)
-        temp_file.flush()
-        pdf = files.File(temp_file)
+        with NamedTemporaryFile(delete=True) as temp_file:
+          download.save_as(temp_file.name)
+          temp_file.flush()
 
-        # ---------------------
-        context.close()
-        browser.close()
-        return {"text": None, "pdf": pdf}
-      else:
-        context.close()
-        browser.close()
-        return None
+          # ---------------------
+          context.close()
+          browser.close()
+          return {"text": None, "pdf": temp_file.file}
+
+      context.close()
+      browser.close()
+      return None
       
 
-  html = None
   pdf = None
   with sync_playwright() as playwright:
       result = run(playwright)
       if result is not(None):
-        html = result["text"]
         pdf = result["pdf"]
   
   encoded_pdf = None
@@ -2921,7 +2849,7 @@ def getGoodmanWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
 
 
 ## GET AO SMITH WARRANTY
-@shared_task()
+@app.task
 def getAOSmithWarranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name):
   
   print(f"### Starting AO Smith Warranty Lookup: {serial_number}")
@@ -2972,19 +2900,19 @@ def getAOSmithWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
 
 
 ## FIND EQUIPMENT MANUALS
-@shared_task()
+@app.task
 def manual_lookup(model_number, manufacturer, equipment_type, model_id):
   dotenv.load_dotenv()
 
   return model_number
 
-@shared_task()
+@app.task
 def test_task():
   sleep(5)
   print("test task completed")
   return time.time()
 
-@shared_task()
+@app.task
 def sum_test_task(a, b):
   sleep(5)
   print("sum test task completed")
