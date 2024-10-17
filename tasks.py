@@ -2903,13 +2903,13 @@ def getAOSmithWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
 @app.task
 def manual_lookup(model_number, manufacturer, equipment_type, model_id):
   dotenv.load_dotenv()
-
   return model_number
 
 @app.task
 def test_task():
+  print("TEST_TASK STARTING")
   sleep(5)
-  print("test task completed")
+  print("TEST_TASK COMPLETED")
   return time.time()
 
 @app.task

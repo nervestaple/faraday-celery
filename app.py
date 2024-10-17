@@ -12,15 +12,15 @@ def index():
 
 @app.route('/test', methods=['GET'])
 def test():
-  time_now = test_task.delay()
-  return Response(time_now, status=200)
+  test_task.delay()
+  return Response('started...', status=200)
 
 @app.route('/test-add', methods=['POST'])
 def test_add():
-  a = int(request.data.get('a'))
-  b = int(request.data.get('b'))
-  sum = sum_test_task.delay(a, b)
-  return Response(sum, status=200)
+  a = int(request.args.get('a'))
+  b = int(request.args.get('b'))
+  sum_test_task.delay(a, b)
+  return Response('started...', status=200)
 
 @app.route('/model', methods=['POST'])
 def add_new_model():
