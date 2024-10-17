@@ -7,7 +7,7 @@ app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 
 @app.route('/')
-def index(request):
+def index():
   return render_template('index.html')
 
 @app.route('/test', methods=['GET'])
@@ -16,14 +16,14 @@ def test(self):
   return Response(time_now, status=200)
 
 @app.route('/test-add', methods=['POST'])
-def post(self, request):
+def test_add(self, request):
   a = int(request.data.get('a'))
   b = int(request.data.get('b'))
   sum = sum_test_task.delay(a, b)
   return Response(sum, status=200)
 
 @app.route('/model', methods=['POST'])
-def post(self, request, *args, **kwargs):
+def add_new_model(self, request, *args, **kwargs):
   data = {
     'model_number': request.data.get('model_number'),
     'supporting_data': request.data.get('supporting_data'),
@@ -41,7 +41,7 @@ def post(self, request, *args, **kwargs):
     return Response(model_number, status=200)
 
 @app.route('/manual-lookup', methods=['POST'])
-def post(self, request, *args, **kwargs):
+def manual_lookup(self, request, *args, **kwargs):
   data = {
     'model_number': request.data.get('model_number'),
     'manufacturer': request.data.get('manufacturer'),
@@ -62,7 +62,7 @@ def post(self, request, *args, **kwargs):
 
 
 @app.route('/warranty', methods=['POST'])
-def post(self, request, *args, **kwargs):
+def warranty_lookup(self, request, *args, **kwargs):
   data = {
     'manufacturer': request.data.get('manufacturer'),
     'last_name': request.data.get('last_name'),
