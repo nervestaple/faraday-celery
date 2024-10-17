@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, request, Response
 from tasks import identify_new_model, getCarrierWarranty, getTraneWarranty, getYorkWarranty, getLennoxWarranty, manual_lookup, test_task, sum_test_task
 import requests
 
@@ -11,19 +11,19 @@ def index():
   return render_template('index.html')
 
 @app.route('/test', methods=['GET'])
-def test(self):
+def test():
   time_now = test_task.delay()
   return Response(time_now, status=200)
 
 @app.route('/test-add', methods=['POST'])
-def test_add(self, request):
+def test_add():
   a = int(request.data.get('a'))
   b = int(request.data.get('b'))
   sum = sum_test_task.delay(a, b)
   return Response(sum, status=200)
 
 @app.route('/model', methods=['POST'])
-def add_new_model(self, request, *args, **kwargs):
+def add_new_model():
   data = {
     'model_number': request.data.get('model_number'),
     'supporting_data': request.data.get('supporting_data'),
@@ -41,7 +41,7 @@ def add_new_model(self, request, *args, **kwargs):
     return Response(model_number, status=200)
 
 @app.route('/manual-lookup', methods=['POST'])
-def manual_lookup(self, request, *args, **kwargs):
+def manual_lookup():
   data = {
     'model_number': request.data.get('model_number'),
     'manufacturer': request.data.get('manufacturer'),
@@ -62,7 +62,7 @@ def manual_lookup(self, request, *args, **kwargs):
 
 
 @app.route('/warranty', methods=['POST'])
-def warranty_lookup(self, request, *args, **kwargs):
+def warranty_lookup():
   data = {
     'manufacturer': request.data.get('manufacturer'),
     'last_name': request.data.get('last_name'),
