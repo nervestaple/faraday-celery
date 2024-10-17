@@ -18,6 +18,8 @@ services:
           name: celery-redis
           type: redis
           property: connectionString
+      - key: SERPAPI_API_KEY
+        sync: false
   - type: web
     name: app
     region: ohio
@@ -37,6 +39,8 @@ services:
           name: celery-redis
           type: redis
           property: connectionString
+      - key: SERPAPI_API_KEY
+        sync: false
   - type: web
     name: flower
     region: ohio
