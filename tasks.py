@@ -19,7 +19,7 @@ from langchain.document_loaders import OnlinePDFLoader
 from langchain.document_loaders import AsyncChromiumLoader
 from langchain.document_transformers import BeautifulSoupTransformer
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from api.utils import search_and_parse_pdfs
+from utils import search_and_parse_pdfs
 import time
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
