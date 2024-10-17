@@ -93,8 +93,7 @@ def identify_new_model(model_number, supporting_data):
   
   # headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'}
   # r = requests.get(url, headers=headers)
-  print(r)
-  pass
+  # print(r)
   # print(r.headers.get('content-type'))
   # return r
 
