@@ -13,6 +13,8 @@ services:
     startCommand: "celery --app faraday.celery worker --loglevel info --concurrency 4"
     autoDeploy: true
     envVars:
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
       - key: CELERY_BROKER_URL
         fromService:
           name: celery-redis
