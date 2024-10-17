@@ -1,3 +1,4 @@
+from time import sleep
 from celery import shared_task
 import os
 import requests
@@ -2976,3 +2977,15 @@ def manual_lookup(model_number, manufacturer, equipment_type, model_id):
   dotenv.load_dotenv()
 
   return model_number
+
+@shared_task()
+def test_task():
+  sleep(5)
+  print("test task completed")
+  return time.time()
+
+@shared_task()
+def sum_test_task(a, b):
+  sleep(5)
+  print("sum test task completed")
+  return a + b

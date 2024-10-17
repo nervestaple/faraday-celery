@@ -2,11 +2,7 @@ from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework import permissions
-import os
-from api.tasks import identify_new_model, getCarrierWarranty, getTraneWarranty, getYorkWarranty, getLennoxWarranty, manual_lookup
-from PIL import Image
-from io import BytesIO
+from api.tasks import identify_new_model, getCarrierWarranty, getTraneWarranty, getYorkWarranty, getLennoxWarranty, manual_lookup, test_task, sum_test_task
 import requests
 from rest_framework.response import Response
 
@@ -15,8 +11,19 @@ from rest_framework.response import Response
 def index(request):
     return render(request, 'index.html')
 
-class AddNewModel(APIView):
+class TaskForTesting(APIView):
+    def get(self):
+      time_now = test_task.delay()
+      return Response(time_now, status=status.HTTP_200_OK)
 
+class AdditionTaskForTesting(APIView):
+    def post(self, request):
+      a = int(request.data.get('a'))
+      b = int(request.data.get('b'))
+      sum = sum_test_task.delay(a, b)
+      return Response(sum, status=status.HTTP_200_OK)
+
+class AddNewModel(APIView):
   def post(self, request, *args, **kwargs):
     data = {
       'model_number': request.data.get('model_number'),
