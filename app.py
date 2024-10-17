@@ -6,21 +6,21 @@ import requests
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 
-@app.route('/')
+@app.route('/hello', methods=['GET'])
 def index():
-  return render_template('index.html')
+  return 'Hello, Faraday!'
 
 @app.route('/test', methods=['GET'])
 def test():
   test_task.delay()
-  return Response('started...', status=200)
+  return 'started...'
 
-@app.route('/test-add', methods=['POST'])
+@app.route('/test-add', methods=['GET'])
 def test_add():
   a = int(request.args.get('a'))
   b = int(request.args.get('b'))
   sum_test_task.delay(a, b)
-  return Response('started...', status=200)
+  return 'started...'
 
 @app.route('/model', methods=['POST'])
 def add_new_model():
@@ -37,7 +37,7 @@ def add_new_model():
     model = identify_new_model(model_number, supporting_data)
     return Response(model, status=200)
   else:
-    model = identify_new_model.delay(model_number, supporting_data)
+    identify_new_model.delay(model_number, supporting_data)
     return Response(model_number, status=200)
 
 @app.route('/manual-lookup', methods=['POST'])
@@ -52,13 +52,13 @@ def manual_lookup():
   manufacturer = data['manufacturer']
   equipment_type = data['equipment_type']
   model_id = data['model_id']
-  manual = manual_lookup.delay(model_number, manufacturer, equipment_type, model_id)
+  manual_lookup.delay(model_number, manufacturer, equipment_type, model_id)
   try:
     return Response(model_id, status=200)
   except Exception as e:
     print(f"something went wrong {e}")
   finally:
-    r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', json={"warranty_object": warranty_object, "equipment_scan_id": equipment_scan_id}, timeout=30)
+    requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', json={"warranty_object": warranty_object, "equipment_scan_id": equipment_scan_id}, timeout=30)
 
 
 @app.route('/warranty', methods=['POST'])
