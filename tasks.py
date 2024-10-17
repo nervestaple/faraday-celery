@@ -93,7 +93,8 @@ def identify_new_model(model_number, supporting_data):
   
   # headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36'}
   # r = requests.get(url, headers=headers)
-  # print(r)
+  print(r)
+  pass
   # print(r.headers.get('content-type'))
   # return r
 
@@ -207,7 +208,8 @@ def identify_new_model(model_number, supporting_data):
       print(f"checking to see if valid url: {url}")
       try:
         r = requests.get(url, timeout=30, headers=headers)
-        print(r)
+        # print(r)
+        pass
         if r.status_code == 200:
           print("good url")
           return r
@@ -359,20 +361,6 @@ def identify_new_model(model_number, supporting_data):
           print("this url is not a pdf")
           text = parse_html(url)
           return text
-
-      
-
-    parse_html_tool = Tool.from_function(
-      name="parse html",
-      description="Useful for turning a web page into text when given a url",
-      func=parse_html,
-    )
-
-    check_url_tool = Tool.from_function(
-    name="check url response",
-    description="Useful for checking to make sure we get a 200 response from each individual url",
-    func=check_valid_url,
-    )
 
     # Get equipment types from database
     equipment_types = []
@@ -1071,7 +1059,7 @@ def identify_new_model(model_number, supporting_data):
 
     model_object["openai_data"] = {"total_tokens": cb.total_tokens, "prompt_tokens": cb.prompt_tokens, "completion_tokens": cb.completion_tokens, "total_cost": cb.total_cost}
     print(model_object)
-    r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/equipmentiq_upload_new_model', json={"model_object": model_object}, timeout=30)
+    # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/equipmentiq_upload_new_model', json={"model_object": model_object}, timeout=30)
     print(f"Status Code: {r.status_code}, Response: {r.json()}, Model: {model_object}")
     print(f"Total Tokens: {cb.total_tokens}")
     print(f"Prompt Tokens: {cb.prompt_tokens}")
@@ -1844,12 +1832,14 @@ def getCarrierWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
 
   else:
     if equipment_scan_id and equipment_scan_id is not(None):
-      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
-      print(r)
+      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
+      # print(r)
+      pass
 
     if equipment_id and equipment_id is not(None):
-      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
-      print(r)
+      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
+      # print(r)
+      pass
 
 ## GET TRANE WARRANTY
 @app.task
@@ -2062,12 +2052,14 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
 
   else:
     if equipment_scan_id and equipment_scan_id is not(None):
-      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
-      print(r)
+      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
+      # print(r)
+      pass
 
     if equipment_id and equipment_id is not(None):
-      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
-      print(r)
+      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
+      # print(r)
+      pass
 
 
 ## GET York WARRANTY
@@ -2250,12 +2242,14 @@ def getYorkWarranty(serial_number, instant, equipment_scan_id, equipment_id, own
 
   else:
     if equipment_scan_id and equipment_scan_id is not(None):
-      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
-      print(r)
+      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
+      # print(r)
+      pass
 
     if equipment_id and equipment_id is not(None):
-      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
-      print(r)
+      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
+      # print(r)
+      pass
 
 
 ## GET LENNOX WARRANTY
@@ -2745,12 +2739,14 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
 
   else:
     if equipment_scan_id and equipment_scan_id is not(None):
-      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
-      print(r)
+      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
+      # print(r)
+      pass
 
     if equipment_id and equipment_id is not(None):
-      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
-      print(r)
+      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
+      # print(r)
+      pass
 
 
 ## FIND EQUIPMENT MANUALS
@@ -2839,12 +2835,14 @@ def getGoodmanWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
 
   else:
     if equipment_scan_id and equipment_scan_id is not(None):
-      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": None, "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
-      print(r)
+      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": None, "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
+      # print(r)
+      pass
 
     if equipment_id and equipment_id is not(None):
-      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": None, "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
-      print(r)
+      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": None, "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
+      # print(r)
+      pass
 
 
 

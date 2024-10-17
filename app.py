@@ -24,11 +24,7 @@ def test_add():
 
 @app.route('/model', methods=['POST'])
 def add_new_model():
-  data = {
-    'model_number': request.data.get('model_number'),
-    'supporting_data': request.data.get('supporting_data'),
-    'instant': request.data.get('instant')
-        }
+  data = request.json
   model_number = data['model_number']
   supporting_data = data['supporting_data']
   instant = data['instant']
@@ -42,12 +38,7 @@ def add_new_model():
 
 @app.route('/manual-lookup', methods=['POST'])
 def manual_lookup():
-  data = {
-    'model_number': request.data.get('model_number'),
-    'manufacturer': request.data.get('manufacturer'),
-    'equipment_type': request.data.get('equipment_type'),
-    'model_id': request.data.get('model_id')
-        }
+  data = request.json
   model_number = data['model_number']
   manufacturer = data['manufacturer']
   equipment_type = data['equipment_type']
@@ -58,19 +49,13 @@ def manual_lookup():
   except Exception as e:
     print(f"something went wrong {e}")
   finally:
-    requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', json={"warranty_object": warranty_object, "equipment_scan_id": equipment_scan_id}, timeout=30)
+    # requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', json={"warranty_object": warranty_object, "equipment_scan_id": equipment_scan_id}, timeout=30)
+    pass
 
 
 @app.route('/warranty', methods=['POST'])
 def warranty_lookup():
-  data = {
-    'manufacturer': request.data.get('manufacturer'),
-    'last_name': request.data.get('last_name'),
-    'serial_number': request.data.get('serial_number'),
-    'instant': request.data.get('instant'),
-    'equipment_scan_id': request.data.get('equipment_scan_id'),
-    'equipment_id': request.data.get('equipment_id')
-        }
+  data = request.json
   manufacturer = data['manufacturer']
   last_name = data['last_name']
   serial_number = data['serial_number']
