@@ -9,7 +9,7 @@ services:
     name: celery-worker
     region: ohio
     runtime: python
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: "pip install -r requirements.txt && playwright install"
     startCommand: "celery --app tasks worker --loglevel info --concurrency 4"
     autoDeploy: true
     envVars:
@@ -19,6 +19,14 @@ services:
           type: redis
           property: connectionString
       - key: SERPAPI_API_KEY
+        sync: false
+      - key: OPENAI_API_TYPE
+        value: "azure"
+      - key: OPENAI_API_VERSION
+        value: "2023-07-01-preview"
+      - key: OPENAI_API_BASE
+        value: "https://faraday.openai.azure.com"
+      - key: OPENAI_API_KEY
         sync: false
   - type: web
     name: app
