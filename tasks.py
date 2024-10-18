@@ -1059,12 +1059,11 @@ def identify_new_model(model_number, supporting_data):
     model_object["openai_data"] = {"total_tokens": cb.total_tokens, "prompt_tokens": cb.prompt_tokens, "completion_tokens": cb.completion_tokens, "total_cost": cb.total_cost}
     print(model_object)
     # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/equipmentiq_upload_new_model', json={"model_object": model_object}, timeout=30)
-    print(f"Response: {r}")
-    print(f"Status Code: {r.status_code}, Response: {r.json()}, Model: {model_object}")
-    print(f"Total Tokens: {cb.total_tokens}")
-    print(f"Prompt Tokens: {cb.prompt_tokens}")
-    print(f"Completion Tokens: {cb.completion_tokens}")
-    print(f"Total Cost (USD): ${cb.total_cost}")
+    # print(f"Status Code: {r.status_code}, Response: {r.json()}, Model: {model_object}")
+    # print(f"Total Tokens: {cb.total_tokens}")
+    # print(f"Prompt Tokens: {cb.prompt_tokens}")
+    # print(f"Completion Tokens: {cb.completion_tokens}")
+    # print(f"Total Cost (USD): ${cb.total_cost}")
     return model_object
 
 ## GET CARRIER WARRANTY
