@@ -1,9 +1,3 @@
-databases:
-  - name: flowerdb
-    plan: free
-    databaseName: flower
-    user: flower
-
 services:
   - type: worker
     name: celery-worker
@@ -46,16 +40,12 @@ services:
   - type: web
     name: flower
     region: ohio
-    plan: free
+    plan: starter
     runtime: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "celery --app tasks flower --loglevel info"
+    startCommand: "celery --app tasks flower --loglevel info --persistent=True"
     autoDeploy: true
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: flowerdb
-          property: connectionString
       - key: FLOWER_BROKER_API # the flower docs say this is the env name, but the example uses CELERY_BROKER_URL... hmm?
         fromService:
           type: redis
@@ -71,6 +61,6 @@ services:
   - type: redis
     name: celery-redis
     region: ohio
-    plan: starter # we choose a plan with persistence to ensure tasks are not lost upon restart
+    plan: starter
     maxmemoryPolicy: noeviction # recommended policy for queues
     ipAllowList: [] # only allow internal connections
