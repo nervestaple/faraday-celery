@@ -63,4 +63,11 @@ services:
     region: ohio
     plan: starter
     maxmemoryPolicy: noeviction # recommended policy for queues
-    ipAllowList: [] # only allow internal connections
+    ipAllowList:
+      - source: 35.90.103.132/30
+        description: retool1
+      - source: 44.208.168.68/30
+        description: retool2
+    envVars:
+      - key: REDIS_PASSWORD
+        generateValue: true
