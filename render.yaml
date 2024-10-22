@@ -1,5 +1,12 @@
-envVarGroups:
-  - name: worker-env-vars
+services:
+  - type: worker
+    name: celery-worker-1
+    region: ohio
+    runtime: python
+    plan: pro
+    buildCommand: "pip install -r requirements.txt && playwright install"
+    startCommand: "celery --app tasks worker --loglevel info"
+    autoDeploy: true
     envVars:
       - key: CELERY_BROKER_URL
         fromService:
@@ -12,18 +19,6 @@ envVarGroups:
         value: "2023-07-01-preview"
       - key: OPENAI_API_BASE
         value: "https://faraday.openai.azure.com"
-
-services:
-  - type: worker
-    name: celery-worker-1
-    region: ohio
-    runtime: python
-    plan: pro
-    buildCommand: "pip install -r requirements.txt && playwright install"
-    startCommand: "celery --app tasks worker --loglevel info"
-    autoDeploy: true
-    envVars:
-      - fromGroup: worker-env-vars
       - key: SERPAPI_API_KEY
         sync: false
       - key: OPENAI_API_KEY
@@ -37,12 +32,33 @@ services:
     startCommand: "celery --app tasks worker --loglevel info"
     autoDeploy: true
     envVars:
-      - fromGroup: worker-env-vars
-      - fromService:
+      - key: CELERY_BROKER_URL
+        fromService:
+          name: celery-redis
+          type: redis
+          property: connectionString
+      - key: OPENAI_API_TYPE
+        fromService:
+          name: celery-worker-1
+          type: worker
+          envVarKey: OPENAI_API_TYPE
+      - key: OPENAI_API_VERSION
+        fromService:
+          name: celery-worker-1
+          type: worker
+          envVarKey: OPENAI_API_VERSION
+      - key: OPENAI_API_BASE
+        fromService:
+          name: celery-worker-1
+          type: worker
+          envVarKey: OPENAI_API_BASE
+      - key: SERPAPI_API_KEY
+        fromService:
           name: celery-worker-1
           type: worker
           envVarKey: SERPAPI_API_KEY
-      - fromService:
+      - key: OPENAI_API_KEY
+        fromService:
           name: celery-worker-1
           type: worker
           envVarKey: OPENAI_API_KEY
