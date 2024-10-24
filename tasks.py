@@ -1892,7 +1892,7 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
           temp_file.flush()
 
           #pdf = pdfplumber.open(pdf)
-          reader = pdfplumber.open(pdf)
+          reader = pdfplumber.open(temp_file)
           #reader = PdfReader(pdf)
           texts = ""
           for page in reader.pages:
@@ -1900,7 +1900,7 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
             texts += text
           context.close()
           browser.close()
-          return {"text": texts, "pdf": pdf}
+          return {"text": texts, "pdf": temp_file}
 
       context.close()
       browser.close()
