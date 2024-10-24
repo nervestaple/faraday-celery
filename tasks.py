@@ -207,14 +207,12 @@ def identify_new_model(model_number, supporting_data):
       print(f"checking to see if valid url: {url}")
       try:
         r = requests.get(url, timeout=30, headers=headers)
-        # print(r)
-        pass
+        print(r)
         if r.status_code == 200:
           print("good url")
           return r
         else:
           print("bad url")
-        #print(r.headers.get('content-type'))
       except Exception as e:
           print(f"Something went wrong {e}")
           bad_url += 1
@@ -1057,13 +1055,13 @@ def identify_new_model(model_number, supporting_data):
         print("error")
 
     model_object["openai_data"] = {"total_tokens": cb.total_tokens, "prompt_tokens": cb.prompt_tokens, "completion_tokens": cb.completion_tokens, "total_cost": cb.total_cost}
-    print(model_object)
-    # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/equipmentiq_upload_new_model', json={"model_object": model_object}, timeout=30)
-    # print(f"Status Code: {r.status_code}, Response: {r.json()}, Model: {model_object}")
-    # print(f"Total Tokens: {cb.total_tokens}")
-    # print(f"Prompt Tokens: {cb.prompt_tokens}")
-    # print(f"Completion Tokens: {cb.completion_tokens}")
-    # print(f"Total Cost (USD): ${cb.total_cost}")
+    r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/equipmentiq_upload_new_model', json={"model_object": model_object}, timeout=30)
+    print(f"Status Code: {r.status_code}, Response: {r.json()}, Model: {model_object}")
+    print(f"Model: {model_object}")
+    print(f"Total Tokens: {cb.total_tokens}")
+    print(f"Prompt Tokens: {cb.prompt_tokens}")
+    print(f"Completion Tokens: {cb.completion_tokens}")
+    print(f"Total Cost (USD): ${cb.total_cost}")
     return model_object
 
 ## GET CARRIER WARRANTY
@@ -1831,14 +1829,12 @@ def getCarrierWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
 
   else:
     if equipment_scan_id and equipment_scan_id is not(None):
-      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
-      # print(r)
-      pass
+      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
+      print(r)
 
     if equipment_id and equipment_id is not(None):
-      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
-      # print(r)
-      pass
+      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
+      print(r)
 
 ## GET TRANE WARRANTY
 @app.task
@@ -2051,14 +2047,12 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
 
   else:
     if equipment_scan_id and equipment_scan_id is not(None):
-      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
-      # print(r)
-      pass
+      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
+      print(r)
 
     if equipment_id and equipment_id is not(None):
-      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
-      # print(r)
-      pass
+      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
+      print(r)
 
 
 ## GET York WARRANTY
@@ -2241,14 +2235,12 @@ def getYorkWarranty(serial_number, instant, equipment_scan_id, equipment_id, own
 
   else:
     if equipment_scan_id and equipment_scan_id is not(None):
-      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
-      # print(r)
-      pass
+      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
+      print(r)
 
     if equipment_id and equipment_id is not(None):
-      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
-      # print(r)
-      pass
+      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
+      print(r)
 
 
 ## GET LENNOX WARRANTY
@@ -2738,14 +2730,12 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
 
   else:
     if equipment_scan_id and equipment_scan_id is not(None):
-      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
-      # print(r)
-      pass
+      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
+      print(r)
 
     if equipment_id and equipment_id is not(None):
-      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
-      # print(r)
-      pass
+      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
+      print(r)
 
 
 ## FIND EQUIPMENT MANUALS
@@ -2834,14 +2824,12 @@ def getGoodmanWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
 
   else:
     if equipment_scan_id and equipment_scan_id is not(None):
-      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": None, "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
-      # print(r)
-      pass
+      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": None, "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
+      print(r)
 
     if equipment_id and equipment_id is not(None):
-      # r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": None, "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
-      # print(r)
-      pass
+      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={"warranty_object": None, "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
+      print(r)
 
 
 
