@@ -1,7 +1,7 @@
 services:
   - type: worker
     name: celery-worker-1
-    region: web
+    region: ohio
     runtime: python
     plan: pro
     buildCommand: "pip install -r requirements.txt && playwright install"
