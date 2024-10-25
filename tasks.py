@@ -1822,7 +1822,7 @@ def getCarrierWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
   encoded_pdf = None
   if pdf is not(None):
     with open(pdf.name, "rb") as pdf:
-      encoded_pdf = base64.b64encode(pdf.read())
+      encoded_pdf = base64.b64encode(pdf.read()).decode('ascii')
 
   if int(instant) == 1:
     return {"warranty_object": warranty_object, "filedata": encoded_pdf}
@@ -2041,7 +2041,7 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
   encoded_pdf = None
   if pdf is not None:
     with open(pdf.name, "rb") as pdf:
-      encoded_pdf = base64.b64encode(pdf.read())
+      encoded_pdf = base64.b64encode(pdf.read()).decode('ascii')
 
   if int(instant) == 1:
     return {"warranty_object": warranty_object, "filedata": encoded_pdf}
@@ -2174,7 +2174,7 @@ def getYorkWarranty(serial_number, instant, equipment_scan_id, equipment_id, own
   encoded_pdf = None
   if pdf is not(None):
     with open(pdf.name, "rb") as pdf:
-      encoded_pdf = base64.b64encode(pdf.read())
+      encoded_pdf = base64.b64encode(pdf.read()).decode('ascii')
 
   if int(instant) == 1:
     return {"warranty_object": warranty_object, "filedata": encoded_pdf}
@@ -2668,7 +2668,7 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
   encoded_pdf = None
   if pdf is not(None):
     with open(pdf.name, "rb") as pdf:
-        encoded_pdf = base64.b64encode(pdf.read())
+        encoded_pdf = base64.b64encode(pdf.read()).decode('ascii')
 
   if int(instant) == 1:
     return {"warranty_object": warranty_object, "filedata": encoded_pdf}
@@ -2761,7 +2761,7 @@ def getGoodmanWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
   encoded_pdf = None
   if pdf is not(None):
     with open(pdf.name, "rb") as pdf:
-        encoded_pdf = base64.b64encode(pdf.read())
+        encoded_pdf = base64.b64encode(pdf.read()).decode('ascii')
 
   if int(instant) == 1:
     return {"filedata": encoded_pdf}
