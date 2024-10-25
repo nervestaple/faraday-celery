@@ -30,7 +30,7 @@ def add_new_model():
   if instant:
     #return Response("hey", status=status.HTTP_200_OK)
     model = identify_new_model(model_number, supporting_data)
-    return Response(model, status=200)
+    return jsonify(model)
   else:
     identify_new_model.delay(model_number, supporting_data)
     return Response(model_number, status=200)
@@ -91,7 +91,7 @@ def warranty_lookup():
     if int(instant) == 1:
       warranty_data = getYorkWarranty(serial_number, instant, equipment_scan_id, equipment_id, last_name)
       if warranty_data:
-        return jsonify(warranty_data, status=200)
+        return jsonify(warranty_data)
       else:
         return Response(None, status=500)
     else:
@@ -103,7 +103,7 @@ def warranty_lookup():
     if int(instant) == 1:
       warranty_data = getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, last_name)
       if warranty_data:
-        return jsonify(warranty_data, status=200)
+        return jsonify(warranty_data)
       else:
         return Response(None, status=500)
     else:
