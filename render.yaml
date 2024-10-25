@@ -1,7 +1,7 @@
 services:
   - type: worker
-    name: celery-worker-1
-    region: ohio
+    name: app
+    region: web
     runtime: python
     plan: pro
     buildCommand: "pip install -r requirements.txt && playwright install"
@@ -14,15 +14,30 @@ services:
           type: redis
           property: connectionString
       - key: OPENAI_API_TYPE
-        value: "azure"
+        fromService:
+          name: app
+          type: web
+          envVarKey: OPENAI_API_TYPE
       - key: OPENAI_API_VERSION
-        value: "2023-07-01-preview"
+        fromService:
+          name: app
+          type: web
+          envVarKey: OPENAI_API_VERSION
       - key: OPENAI_API_BASE
-        value: "https://faraday.openai.azure.com"
+        fromService:
+          name: app
+          type: web
+          envVarKey: OPENAI_API_BASE
       - key: SERPAPI_API_KEY
-        sync: false
+        fromService:
+          name: app
+          type: web
+          envVarKey: SERPAPI_API_KEY
       - key: OPENAI_API_KEY
-        sync: false
+        fromService:
+          name: app
+          type: web
+          envVarKey: OPENAI_API_KEY
   - type: worker
     name: celery-worker-2
     region: ohio
@@ -39,28 +54,28 @@ services:
           property: connectionString
       - key: OPENAI_API_TYPE
         fromService:
-          name: celery-worker-1
-          type: worker
+          name: app
+          type: web
           envVarKey: OPENAI_API_TYPE
       - key: OPENAI_API_VERSION
         fromService:
-          name: celery-worker-1
-          type: worker
+          name: app
+          type: web
           envVarKey: OPENAI_API_VERSION
       - key: OPENAI_API_BASE
         fromService:
-          name: celery-worker-1
-          type: worker
+          name: app
+          type: web
           envVarKey: OPENAI_API_BASE
       - key: SERPAPI_API_KEY
         fromService:
-          name: celery-worker-1
-          type: worker
+          name: app
+          type: web
           envVarKey: SERPAPI_API_KEY
       - key: OPENAI_API_KEY
         fromService:
-          name: celery-worker-1
-          type: worker
+          name: app
+          type: web
           envVarKey: OPENAI_API_KEY
   - type: web
     name: app
@@ -78,6 +93,16 @@ services:
           name: celery-redis
           type: redis
           property: connectionString
+      - key: OPENAI_API_TYPE
+        value: "azure"
+      - key: OPENAI_API_VERSION
+        value: "2023-07-01-preview"
+      - key: OPENAI_API_BASE
+        value: "https://faraday.openai.azure.com"
+      - key: SERPAPI_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
   - type: web
     name: flower
     region: ohio
