@@ -44,7 +44,7 @@ services:
     runtime: python
     plan: pro
     buildCommand: "pip install -r requirements.txt && playwright install"
-    startCommand: "gunicorn app:app"
+    startCommand: "gunicorn --timeout=300 --workers=3 app:app"
     autoDeploy: true
     envVars:
       - key: FLASK_SECRET_KEY

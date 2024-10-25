@@ -1,7 +1,6 @@
 import os
-from flask import Flask, render_template, request, Response
+from flask import Flask, jsonify, request, Response
 from tasks import identify_new_model, getCarrierWarranty, getTraneWarranty, getYorkWarranty, getLennoxWarranty, manual_lookup, test_task, sum_test_task
-import requests
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
@@ -68,7 +67,7 @@ def warranty_lookup():
     if int(instant) == 1:
       warranty_data = getCarrierWarranty(serial_number, instant, equipment_scan_id, equipment_id, last_name)
       if warranty_data:
-        return Response(warranty_data, status=200)
+        return jsonify(warranty_data)
       else:
         return Response(None, status=500)
     else:
@@ -80,7 +79,7 @@ def warranty_lookup():
     if int(instant) == 1:
       warranty_data = getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, last_name)
       if warranty_data:
-        return Response(warranty_data, status=200)
+        return jsonify(warranty_data)
       else:
         return Response(None, status=500)
     else:
@@ -92,7 +91,7 @@ def warranty_lookup():
     if int(instant) == 1:
       warranty_data = getYorkWarranty(serial_number, instant, equipment_scan_id, equipment_id, last_name)
       if warranty_data:
-        return Response(warranty_data, status=200)
+        return jsonify(warranty_data, status=200)
       else:
         return Response(None, status=500)
     else:
@@ -104,7 +103,7 @@ def warranty_lookup():
     if int(instant) == 1:
       warranty_data = getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, last_name)
       if warranty_data:
-        return Response(warranty_data, status=200)
+        return jsonify(warranty_data, status=200)
       else:
         return Response(None, status=500)
     else:
