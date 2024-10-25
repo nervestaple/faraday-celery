@@ -1,6 +1,6 @@
 services:
   - type: worker
-    name: app
+    name: celery-worker-1
     region: web
     runtime: python
     plan: pro
