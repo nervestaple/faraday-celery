@@ -1911,6 +1911,7 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
   with sync_playwright() as playwright:
       result = run(playwright)
       if result is not(None):
+        print(result)
         html = result["text"]
         pdf = result["pdf"]
 
