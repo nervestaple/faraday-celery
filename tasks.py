@@ -1886,21 +1886,21 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
           print(f"something went wrong: {e}")
       
       texts = ""
-      if download is not(None):
-        with NamedTemporaryFile(delete=True) as temp_file:
-          download.save_as(temp_file.name)
-          temp_file.flush()
+      if download is not None:
+        temp_file = NamedTemporaryFile(delete=True)
+        download.save_as(temp_file.name)
+        temp_file.flush()
 
-          #pdf = pdfplumber.open(pdf)
-          reader = pdfplumber.open(temp_file)
-          #reader = PdfReader(pdf)
-          texts = ""
-          for page in reader.pages:
-            text = page.extract_text()
-            texts += text
-          context.close()
-          browser.close()
-          return {"text": texts, "pdf": temp_file}
+        #pdf = pdfplumber.open(pdf)
+        reader = pdfplumber.open(temp_file)
+        #reader = PdfReader(pdf)
+        texts = ""
+        for page in reader.pages:
+          text = page.extract_text()
+          texts += text
+        context.close()
+        browser.close()
+        return {"text": texts, "pdf": temp_file}
 
       context.close()
       browser.close()
@@ -1910,7 +1910,7 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
   pdf = None
   with sync_playwright() as playwright:
       result = run(playwright)
-      if result is not(None):
+      if result is not None:
         print(result)
         html = result["text"]
         pdf = result["pdf"]
@@ -2039,7 +2039,7 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
   
   print(warranty_object)   
   encoded_pdf = None
-  if pdf is not(None):
+  if pdf is not None:
     with open(pdf, "rb") as pdf:
       encoded_pdf = base64.b64encode(pdf.read())
 
@@ -2273,18 +2273,17 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
       
       texts = ""
       if download is not(None):
+        temp_file = NamedTemporaryFile(delete=True)
+        download.save_as(temp_file.name)
+        temp_file.flush()
 
-        with NamedTemporaryFile(delete=True) as temp_file:
-          download.save_as(temp_file.name)
-          temp_file.flush()
-
-          #pdf = pdfplumber.open(pdf)
-          reader = pdfplumber.open(temp_file)
-          #reader = PdfReader(pdf)
-          texts = ""
-          for page in reader.pages:
-            text = page.extract_text()
-            texts += text
+        #pdf = pdfplumber.open(pdf)
+        reader = pdfplumber.open(temp_file)
+        #reader = PdfReader(pdf)
+        texts = ""
+        for page in reader.pages:
+          text = page.extract_text()
+          texts += text
 
         # ---------------------
         context.close()
@@ -2739,15 +2738,14 @@ def getGoodmanWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
           print(f"something went wrong: {e}")
       
       if download is not(None):
+        temp_file = NamedTemporaryFile(delete=True)
+        download.save_as(temp_file.name)
+        temp_file.flush()
 
-        with NamedTemporaryFile(delete=True) as temp_file:
-          download.save_as(temp_file.name)
-          temp_file.flush()
-
-          # ---------------------
-          context.close()
-          browser.close()
-          return {"text": None, "pdf": temp_file.file}
+        # ---------------------
+        context.close()
+        browser.close()
+        return {"text": None, "pdf": temp_file.file}
 
       context.close()
       browser.close()
