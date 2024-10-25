@@ -2040,7 +2040,7 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
   encoded_pdf = None
   if pdf is not(None):
     with open(pdf.name, "rb") as pdf:
-        encoded_pdf = base64.b64encode(pdf.read())
+      encoded_pdf = base64.b64encode(pdf.read())
 
   if int(instant) == 1:
     return {"warranty_object": warranty_object, "filedata": encoded_pdf}
@@ -2109,61 +2109,6 @@ def getYorkWarranty(serial_number, instant, equipment_scan_id, equipment_id, own
     html = result["html"]
     pdf = result["pdf"]
 
-    #print(html)
-
-#     html = ''' 
-#     <div class="warranty-details-wrapper">
-#   <div class="details-title">Warranty Unit Details</div>
-#   <div class="warranty-details-content">
-#     <div class="details-content-table">
-#       <div class="details-content-header">
-#         <div class="column">Serial Number</div>
-#         <div class="column">Model Number</div>
-#         <div class="column">Description</div>
-#         <div class="column">Unit Status</div>
-#       </div>
-#       <div class="details-content-row">
-#         <div class="column">W1B6355880</div>
-#         <div class="column">FC48C3XC1</div>
-#         <div class="column">4.0T 21.0 FULL COIL CU</div>
-#         <div class="column">Product registered</div>
-#       </div>
-#     </div>
-#     <div class="details-content-additional">
-#       <div class="details-additional-title">Distribution Channel Status:</div>
-#       <div class="details-additional-value">Installed</div>
-#     </div>
-#     <div class="details-content-additional">
-#       <div class="details-additional-title">Latest Date On Record:</div>
-#       <div class="details-additional-value">04/19/2016</div>
-#     </div>
-#   </div>
-# </div>
-# <div class="warranty-coverage-wrapper">
-#   <div class="coverage-title">Standard Warranty Coverage</div>
-#   <div class="warranty-coverage-content">
-#     <div class="details-content-table" id="warranty-coverage-table">
-#       <div class="details-content-header">
-#         <div class="column">Coverage Type</div>
-#         <div class="column">Terms</div>
-#         <div class="column">Expiration Date</div>
-#       </div>
-#       <div class="details-content-row">
-#         <div class="column">Parts</div>
-#         <div class="column">120</div>
-#         <div class="column">04/19/2026</div>
-#       </div>
-#       <div class="details-content-row">
-#         <div class="column">Labor</div>
-#         <div class="column">30</div>
-#         <div class="column">05/19/2016</div>
-#       </div>
-#     </div>
-#   </div>
-# </div>
-# <div class="warranty-print-button"><button class="button primary-btn" id="warranty-print-button">Download Warranty
-#     Certificate</button></div>'''
-      
   soup = BeautifulSoup(html, "html.parser")
 
   if soup.select_one('div:-soup-contains("Warranty Unit Details")'):
@@ -2227,8 +2172,8 @@ def getYorkWarranty(serial_number, instant, equipment_scan_id, equipment_id, own
   print(warranty_object)
   encoded_pdf = None
   if pdf is not(None):
-    with open(pdf.name, "rb") as pdf:
-        encoded_pdf = base64.b64encode(pdf.read())
+    with open(pdf, "rb") as pdf:
+      encoded_pdf = base64.b64encode(pdf.read())
 
   if int(instant) == 1:
     return {"warranty_object": warranty_object, "filedata": encoded_pdf}
