@@ -1139,6 +1139,10 @@ def getCarrierWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
           pdf.close()
           img_temp_file.flush()
           pdf_temp_file.flush()
+
+          context.close()
+          browser.close()
+          return {"html": html, "pdf": pdf_temp_file.file}
         except Exception as e:
           print(f"something went wrong: {e}")
 
@@ -1150,7 +1154,7 @@ def getCarrierWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
       # ---------------------
       context.close()
       browser.close()
-      return {"html": html, "pdf": pdf_temp_file.file}
+      return {"html": html, "pdf": None}
 
       
 
