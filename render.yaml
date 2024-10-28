@@ -5,7 +5,7 @@ services:
     runtime: python
     plan: pro
     buildCommand: "pip install -r requirements.txt && chmod +x playwright_setup.sh && ./playwright_setup.sh"
-    startCommand: "celery --app tasks worker --loglevel info"
+    startCommand: "playwright install chromium && celery --app tasks worker --loglevel info"
     autoDeploy: true
     envVars:
       - key: CELERY_BROKER_URL
@@ -44,7 +44,7 @@ services:
     runtime: python
     plan: pro
     buildCommand: "pip install -r requirements.txt && chmod +x playwright_setup.sh && ./playwright_setup.sh"
-    startCommand: "gunicorn --timeout=300 --workers=3 app:app"
+    startCommand: "playwright install chromium && celery --app tasks worker --loglevel info"
     autoDeploy: true
     envVars:
       - key: FLASK_SECRET_KEY
