@@ -38,11 +38,6 @@ services:
           name: app
           type: web
           envVarKey: OPENAI_API_KEY
-      - key: OPENAI_API_KEY
-        fromService:
-          name: app
-          type: web
-          envVarKey: OPENAI_API_KEY
       - key: PLAYWRIGHT_BROWSERS_PATH
         fromService:
           name: app
