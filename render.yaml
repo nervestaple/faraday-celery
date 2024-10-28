@@ -4,7 +4,7 @@ services:
     region: ohio
     runtime: python
     plan: pro
-    buildCommand: "pip install -r requirements.txt && playwright install"
+    buildCommand: "pip install -r requirements.txt && chmod +x playwright_setup.sh && ./playwright_setup.sh"
     startCommand: "celery --app tasks worker --loglevel info"
     autoDeploy: true
     envVars:
@@ -43,7 +43,7 @@ services:
     region: ohio
     runtime: python
     plan: pro
-    buildCommand: "pip install -r requirements.txt && playwright install"
+    buildCommand: "pip install -r requirements.txt && chmod +x playwright_setup.sh && ./playwright_setup.sh"
     startCommand: "gunicorn --timeout=300 --workers=3 app:app"
     autoDeploy: true
     envVars:
