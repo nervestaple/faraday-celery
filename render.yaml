@@ -43,6 +43,21 @@ services:
           name: app
           type: web
           envVarKey: PLAYWRIGHT_BROWSERS_PATH
+      - key: LENNOX_EMAIL
+        fromService:
+          name: app
+          type: web
+          envVarKey: LENNOX_EMAIL
+      - key: LENNOX_PASSWORD
+        fromService:
+          name: app
+          type: web
+          envVarKey: LENNOX_PASSWORD
+      - key: ENVIRONMENT
+        fromService:
+          name: app
+          type: web
+          envVarKey: ENVIRONMENT
   - type: web
     name: app
     region: ohio
@@ -71,6 +86,12 @@ services:
         sync: false
       - key: PLAYWRIGHT_BROWSERS_PATH
         value: "/opt/render/project/"
+      - key: LENNOX_EMAIL
+        value: "alex@faradaycareers.com"
+      - key: LENNOX_PASSWORD
+        sync: false
+      - key: ENVIRONMENT
+        value: "production"
   - type: web
     name: flower
     region: ohio

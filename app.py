@@ -1,6 +1,8 @@
 import os
 from flask import Flask, jsonify, request, Response
 from tasks import identify_new_model, getCarrierWarranty, getTraneWarranty, getYorkWarranty, getLennoxWarranty, manual_lookup, test_task, sum_test_task
+from bs4 import BeautifulSoup
+import redis
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
@@ -109,3 +111,24 @@ def warranty_lookup():
     else:
       warranty_data = getLennoxWarranty.delay(serial_number, instant, equipment_scan_id, equipment_id, last_name)
       return Response(serial_number, status=200)
+    
+redis_client = redis.StrictRedis(host=os.getenv('CELERY_BROKER_URL'), port=6379, db=0)
+
+@app.route('/lennox-auth-code', methods=['POST'])
+def lennox_auth_code():
+  data = request.json
+  html = data.get('html')
+  if not html:
+    return Response('Missing html', status=400)
+  
+  soup = BeautifulSoup(html, 'html.parser')
+  cells = soup.select('tbody > tr > td')
+  if len(cells) == 0:
+    return Response('Could not find code', status=400)
+  
+  code = cells[-1].get_text()
+  if not code:
+    return Response('Could not find code', status=400)
+  
+  redis_client.set('lennoxAuthCode', code)
+  return Response('Code saved', status=200)
