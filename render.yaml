@@ -7,6 +7,11 @@ services:
     buildCommand: "pip install -r requirements.txt && chmod +x playwright_setup.sh && ./playwright_setup.sh"
     startCommand: "playwright install chromium && celery --app tasks worker --loglevel info"
     autoDeploy: true
+    scaling: # Autoscaling configuration
+      minInstances: 1
+      maxInstances: 3
+      targetMemoryPercent: 60 # Optional if targetCPUPercent is set
+      targetCPUPercent: 60 # Optional if targetMemory is set
     envVars:
       - key: CELERY_BROKER_URL
         fromService:
@@ -66,6 +71,11 @@ services:
     buildCommand: "pip install -r requirements.txt && chmod +x playwright_setup.sh && ./playwright_setup.sh"
     startCommand: "playwright install chromium && gunicorn --timeout=300 --workers=3 app:app"
     autoDeploy: true
+    scaling: # Autoscaling configuration
+      minInstances: 1
+      maxInstances: 3
+      targetMemoryPercent: 60 # Optional if targetCPUPercent is set
+      targetCPUPercent: 60 # Optional if targetMemory is set
     envVars:
       - key: FLASK_SECRET_KEY
         generateValue: true
