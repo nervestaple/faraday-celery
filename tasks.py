@@ -467,7 +467,7 @@ def identify_new_model(model_number, supporting_data):
         for search_result in search_results:
           urls.append({"url": search_result["link"]})
       else:
-        urls = None
+        urls = []
 
     print(urls)
 
