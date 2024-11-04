@@ -1818,6 +1818,7 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
   def run(playwright: Playwright) -> None:
     text = None
     html = None
+    pdf_base64 = None
     is_dev = os.getenv('ENVIRONMENT') == 'development'
     browser = playwright.chromium.launch(
         headless=(not is_dev), slow_mo=50 if is_dev else 0)
