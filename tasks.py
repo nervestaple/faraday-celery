@@ -1,49 +1,49 @@
-from time import sleep
-import os
-import requests
-import dotenv
-from langchain.utilities import SerpAPIWrapper
-from langchain.prompts import PromptTemplate
-from langchain.agents import Tool
-from langchain.chains import create_extraction_chain
-import dotenv
-from serpapi.google_search import GoogleSearch
-from langchain.document_loaders import PyPDFLoader
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.chains import LLMChain
-from langchain.chat_models import AzureChatOpenAI
-import signal
-from contextlib import contextmanager
-from langchain.document_loaders import OnlinePDFLoader
-from langchain.document_loaders import AsyncChromiumLoader
-from langchain.document_transformers import BeautifulSoupTransformer
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from utils import search_and_parse_pdfs
 import time
-from bs4 import BeautifulSoup
-from urllib.parse import urlparse
-import json
-from langchain.callbacks import get_openai_callback
-import pdfplumber
-from datetime import datetime
-from tempfile import NamedTemporaryFile
-from datetime import datetime
-import re
-from dateutil.relativedelta import relativedelta
-import json
 import base64
-from langchain.chains import create_extraction_chain_pydantic
-from PIL import Image
 import img2pdf
-from langchain.output_parsers import PydanticOutputParser
-from langchain.prompts import PromptTemplate
-from pydantic import BaseModel
-from typing import Sequence
+import io
+import json
+import os
+import pdfplumber
+import re
+import redis
+import requests
+import signal
+
+from bs4 import BeautifulSoup
 from celery import Celery
 from celery.utils.log import get_task_logger
-import redis
-import io
+from contextlib import contextmanager
+from datetime import datetime
+from dateutil.relativedelta import relativedelta
+from dotenv import load_dotenv
+from langchain.agents import Tool
+from langchain.callbacks import get_openai_callback
+from langchain.chains import create_extraction_chain
+from langchain.chains import create_extraction_chain_pydantic
+from langchain.chains import LLMChain
+from langchain.chat_models import AzureChatOpenAI
+from langchain.document_loaders import AsyncChromiumLoader
+from langchain.document_loaders import OnlinePDFLoader
+from langchain.document_loaders import PyPDFLoader
+from langchain.document_transformers import BeautifulSoupTransformer
+from langchain.output_parsers import PydanticOutputParser
+from langchain.prompts import PromptTemplate
+from langchain.prompts import PromptTemplate
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import CharacterTextSplitter
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.utilities import SerpAPIWrapper
+from PIL import Image
+from pydantic import BaseModel
+from serpapi.google_search import GoogleSearch
+from tempfile import NamedTemporaryFile
+from time import sleep
+from typing import Sequence
+from urllib.parse import urlparse
+from utils import search_and_parse_pdfs
+
+load_dotenv()
 
 app = Celery('tasks', broker=os.getenv("CELERY_BROKER_URL"))
 logger = get_task_logger(__name__)
@@ -137,7 +137,7 @@ def identify_new_model(model_number, supporting_data):
 
   with get_openai_callback() as cb:
 
-    dotenv.load_dotenv()
+    load_dotenv()
 
     # Create return variables for resource urls and related model numbers
     potential_resources = []
@@ -1389,7 +1389,7 @@ def getTraneWarranty(serial_number, instant, equipment_scan_id, equipment_id, ow
 
   print(f"### Starting Trane Warranty Lookup: {serial_number}")
 
-  dotenv.load_dotenv()
+  load_dotenv()
 
   from playwright.sync_api import Playwright, sync_playwright, expect
 
@@ -1624,7 +1624,7 @@ def getYorkWarranty(serial_number, instant, equipment_scan_id, equipment_id, own
 
   print(f"### Starting York Warranty Lookup: {serial_number}")
 
-  dotenv.load_dotenv()
+  load_dotenv()
 
   from playwright.sync_api import Playwright, sync_playwright, expect
 
@@ -1763,17 +1763,20 @@ def getYorkWarranty(serial_number, instant, equipment_scan_id, equipment_id, own
 # GET LENNOX WARRANTY
 @app.task
 def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name):
+  pdf_base64 = None
   redis_client = redis.from_url(os.getenv('CELERY_BROKER_URL'), db=0)
 
   print(f"### Starting Lennox Warranty Lookup: {serial_number}")
 
-  dotenv.load_dotenv()
+  load_dotenv()
   LENNOX_EMAIL = os.environ.get("LENNOX_EMAIL")
   LENNOX_PASSWORD = os.environ.get("LENNOX_PASSWORD")
 
   from playwright.sync_api import Playwright, sync_playwright
 
   def try_2fa(page):
+    redis_client.delete('lennoxAuthCode')
+
     url = page.url
     if url == 'https://www.lennoxpros.com/':
       return
@@ -1797,6 +1800,7 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
       code_bytes = redis_client.get('lennoxAuthCode')
       if code_bytes:
         break
+
     redis_client.delete('lennoxAuthCode')
     return code_bytes.decode('ascii')
 
@@ -1814,7 +1818,6 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
 
   def run(playwright: Playwright) -> None:
     text = None
-    pdf_base64 = None
     html = None
     is_dev = os.getenv('ENVIRONMENT') == 'development'
     browser = playwright.chromium.launch(
@@ -1845,7 +1848,6 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
     try:
       page.locator("#warrantyLookUpTable").click()
       print("found lookup table")
-      time.sleep(5)
       pdf_base64 = page.get_by_role(
           "link", name="Print").get_attribute('data-stream')
     except Exception as e:
@@ -1879,116 +1881,25 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
       # ---------------------
       context.close()
       browser.close()
-      return {"text": texts, "pdf": pdf_file, "html": None}
+      return {"text": texts, "pdf_base64": pdf_base64, "html": None}
     elif html is not (None):
-      return {"text": None, "pdf": None, "html": html}
+      return {"text": None, "pdf_base64": None, "html": html}
     else:
       context.close()
       browser.close()
       return None
 
   text = None
-  pdf = None
   html = None
   with sync_playwright() as playwright:
     result = run(playwright)
     if result is not (None):
       text = result["text"]
-      pdf = result["pdf"]
       html = result["html"]
+      pdf_base64 = result["pdf_base64"]
 
   if result is not (None):
-
     if html is not (None):
-      # return html
-
-      #       html = '''
-      #       <table width="70%">
-      #   <tbody>
-      #     <tr align="left">
-      #       <td colspan="2">
-      #         <h4>The warranty information for the product/part you entered is shown below:</h4>
-      #         <br>
-      #       </td>
-      #     </tr>
-      #     <tr align="left" valign="top">
-      #       <td style="height: 35px; width: 25%">
-      #         <b>Serial Number: </b>
-      #       </td>
-      #       <td>
-      #         <span id="lblSerialNumber">1923H50626</span>
-      #       </td>
-      #     </tr>
-      #     <tr align="left" valign="top">
-      #       <td style="height: 35px; width: 25%">
-      #         <b>Model Number: </b>
-      #       </td>
-      #       <td>
-      #         <span id="lblModelNumber">ML17XC1-059-230A02</span>
-      #       </td>
-      #     </tr>
-      #     <tr align="left" valign="top">
-      #       <td style="height: 35px; width: 25%">
-      #         <b>Installation Date: </b>
-      #       </td>
-      #       <td>
-      #         <span id="lblInsDate">09/13/2023</span>
-      #       </td>
-      #     </tr>
-      #     <tr align="left" valign="top">
-      #       <td style="height: 35px; width: 25%">
-      #         <b>Lennox Limited Parts Warranty: </b>
-      #       </td>
-      #       <td>
-      #         <span id="lblStandardWarranty">5 Years </span>
-      #       </td>
-      #     </tr>
-      #     <tr align="left" valign="top">
-      #       <td style="height: 35px; width: 25%;">
-      #         <b>Lennox Extended Parts Warranty: </b>
-      #       </td>
-      #       <td>
-      #         <span id="lblExtendedWarranty">Not Available</span>
-      #       </td>
-      #     </tr>
-      #     <tr align="left" valign="top">
-      #       <td style="height: 35px; width: 25%">
-      #         <b>Extended Parts Warranty Expiration: </b>
-      #       </td>
-      #       <td>
-      #         <span id="lblWarrantyExpiration">Not Available</span>
-      #       </td>
-      #     </tr>
-      #     <tr id="TableLNX1" align="left" valign="top">
-      #       <td style="height: 35px; width: 25%">
-      #         <b>Lennox Limited Labor Warranty: </b>
-      #       </td>
-      #       <td>
-      #         <span id="lblStandardLaborWarranty">Not Available</span>
-      #       </td>
-      #     </tr>
-      #     <tr id="TableLNX2" align="left" valign="top">
-      #       <td style="height: 35px; width: 25%">
-      #         <b>Lennox Limited Labor Expiration: </b>
-      #       </td>
-      #       <td>
-      #         <span id="lblStandardLaborExpiration">Not Available</span>
-      #       </td>
-      #     </tr>
-      #     <tr align="left" valign="top">
-      #       <td style="height: 35px; width: 25%">
-      #         <b>Note: </b>
-      #       </td>
-      #       <td>
-      #         <span id="lblNote">This information is provided as a good faith estimate of the Manufacturer's Warranty coverage
-      #           based on the data available at the time of look-up. Information provided by this system is not intended to
-      #           replace or alter the terms or conditions of warranty coverage laid out in the Lennox Equipment Limited
-      #           Warranty Certificate provided with the unit at the time of purchase.</span>
-      #       </td>
-      #     </tr>
-      #   </tbody>
-      # </table>
-      #       '''
       soup = BeautifulSoup(html, "html.parser")
 
       warranty_object = {}
@@ -2265,31 +2176,25 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
   else:
     warranty_object = None
 
-  print(warranty_object)
-  encoded_pdf = None
-  if pdf is not None:
-    with open(pdf.name, "rb") as pdf:
-      encoded_pdf = base64.b64encode(pdf.read()).decode('ascii')
-
   if int(instant) == 1:
-    return {"warranty_object": warranty_object, "filedata": encoded_pdf}
+    return {"warranty_object": warranty_object, "filedata": pdf_base64}
 
   else:
     if equipment_scan_id and equipment_scan_id is not (None):
       r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={
-                        "warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": encoded_pdf}, timeout=30)
+                        "warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": pdf_base64}, timeout=30)
       print(r)
 
     if equipment_id and equipment_id is not (None):
       r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={
-                        "warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": encoded_pdf}, timeout=30)
+                        "warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": pdf_base64}, timeout=30)
       print(r)
 
 
 # FIND EQUIPMENT MANUALS
 @app.task
 def manual_lookup(model_number, manufacturer, equipment_type, model_id):
-  dotenv.load_dotenv()
+  load_dotenv()
 
   return model_number
 
@@ -2300,7 +2205,7 @@ def getGoodmanWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
 
   print(f"### Starting Goodman Warranty Lookup: {serial_number}")
 
-  dotenv.load_dotenv()
+  load_dotenv()
 
   from playwright.sync_api import Playwright, sync_playwright, expect
 
@@ -2392,7 +2297,7 @@ def getAOSmithWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
 
   print(f"### Starting AO Smith Warranty Lookup: {serial_number}")
 
-  dotenv.load_dotenv()
+  load_dotenv()
 
   from playwright.sync_api import Playwright, sync_playwright, expect
 
@@ -2445,7 +2350,7 @@ def getAOSmithWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
 # FIND EQUIPMENT MANUALS
 @app.task
 def manual_lookup(model_number, manufacturer, equipment_type, model_id):
-  dotenv.load_dotenv()
+  load_dotenv()
   return model_number
 
 

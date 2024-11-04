@@ -1,8 +1,12 @@
 import os
+from dotenv import load_dotenv
 from flask import Flask, jsonify, request, Response
 from tasks import identify_new_model, getCarrierWarranty, getTraneWarranty, getYorkWarranty, getLennoxWarranty, manual_lookup, test_task, sum_test_task
 from bs4 import BeautifulSoup
 import redis
+import json
+
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
@@ -61,6 +65,7 @@ def manual_lookup():
 
 @app.route('/warranty', methods=['POST'])
 def warranty_lookup():
+  print('warranty lookup', request.json)
   data = request.json
   manufacturer = data['manufacturer']
   last_name = data['last_name']
@@ -132,6 +137,7 @@ redis_client = redis.from_url(os.getenv('CELERY_BROKER_URL'), db=0)
 @app.route('/lennox-auth-code', methods=['POST'])
 def lennox_auth_code():
   data = request.json
+  print(json.dumps(data))
   html = data.get('html')
   if not html:
     return Response('Missing html', status=400)
