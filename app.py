@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, Response
-from tasks import identify_new_model, getCarrierWarranty, getTraneWarranty, getYorkWarranty, getLennoxWarranty, manual_lookup, test_task, sum_test_task
+from tasks import identify_new_model, getCarrierWarranty, getTraneWarranty, getYorkWarranty, getLennoxWarranty, get_rheem_warranty, manual_lookup, test_task, sum_test_task
 from bs4 import BeautifulSoup
 import redis
 import json
@@ -69,6 +69,7 @@ def warranty_lookup():
   data = request.json
   manufacturer = data['manufacturer']
   last_name = data['last_name']
+  postal_code = data['postal_code']
   serial_number = data['serial_number']
   instant = data['instant']
   equipment_scan_id = data['equipment_scan_id']
@@ -127,6 +128,19 @@ def warranty_lookup():
         return Response(None, status=500)
     else:
       warranty_data = getLennoxWarranty.delay(
+          serial_number, instant, equipment_scan_id, equipment_id, last_name)
+      return Response(serial_number, status=200)
+
+  elif int(manufacturer) == 4:
+    if int(instant) == 1:
+      warranty_data = get_rheem_warranty(
+          serial_number, instant, equipment_scan_id, equipment_id, last_name, postal_code)
+      if warranty_data:
+        return jsonify(warranty_data)
+      else:
+        return Response(None, status=500)
+    else:
+      warranty_data = get_rheem_warranty.delay(
           serial_number, instant, equipment_scan_id, equipment_id, last_name)
       return Response(serial_number, status=200)
 

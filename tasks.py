@@ -48,7 +48,7 @@ load_dotenv()
 app = Celery('tasks', broker=os.getenv("CELERY_BROKER_URL"))
 logger = get_task_logger(__name__)
 
-# from PIL import Image
+redis_client = redis.from_url(os.getenv('CELERY_BROKER_URL'), db=0)
 
 
 class TimeoutException(Exception):
@@ -1764,7 +1764,6 @@ def getYorkWarranty(serial_number, instant, equipment_scan_id, equipment_id, own
 @app.task
 def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name):
   pdf_base64 = None
-  redis_client = redis.from_url(os.getenv('CELERY_BROKER_URL'), db=0)
 
   print(f"### Starting Lennox Warranty Lookup: {serial_number}")
 
@@ -2367,3 +2366,48 @@ def sum_test_task(a, b):
   sleep(5)
   print("sum test task completed")
   return a + b
+
+
+RHEEM_CLIENT_ID = '7754f947-044b-4c2a-8613-790e3e255b00.apps.rheemapi.com'
+rheem_headers = {
+  "accept": "application/json, text/javascript, */*; q=0.01",
+  "accept-language": "en-US,en;q=0.9",
+  "content-type": "application/json; charset=utf-8",
+  "priority": "u=1, i",
+  "sec-ch-ua": "\"Chromium\";v=\"128\", \"Not;A=Brand\";v=\"24\", \"Google Chrome\";v=\"128\"",
+  "sec-ch-ua-mobile": "?0",
+  "sec-ch-ua-platform": "\"macOS\"",
+  "sec-fetch-dest": "empty",
+  "sec-fetch-mode": "cors",
+  "sec-fetch-site": "cross-site",
+  "x-requested-with": "XMLHttpRequest",
+  "Referer": "https://rheem.registermyunit.com/",
+  "Referrer-Policy": "strict-origin-when-cross-origin",
+  "x-clientid": RHEEM_CLIENT_ID,
+}
+
+
+@app.task
+def get_rheem_warranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name, owner_postal_code):
+  bearer_token = get_rheem_bearer_token()
+  response = requests.get(
+    f"https://resource.myrheem.com/v1/rmu/verify?SerialNumber={serial_number}&HomeownerLastName={owner_last_name}&postalCode={owner_postal_code}",
+    headers={
+      "authorization": f"Bearer {bearer_token}",
+      **rheem_headers
+    }
+  )
+  response = response.json()
+  return response
+
+
+def get_rheem_bearer_token():
+
+  response = requests.get(
+    f"https://auth.myrheem.com/v1/oauth2/authorize?response_type=token&client_id={RHEEM_CLIENT_ID}",
+    headers={**rheem_headers}
+  )
+
+  response = response.json()
+  bearer_token = response['access_token']
+  return bearer_token
