@@ -9,7 +9,7 @@ services:
     autoDeploy: true
     scaling: # Autoscaling configuration
       minInstances: 1
-      maxInstances: 3
+      maxInstances: 5
       targetMemoryPercent: 60 # Optional if targetCPUPercent is set
       targetCPUPercent: 60 # Optional if targetMemory is set
     envVars:
@@ -73,7 +73,7 @@ services:
     autoDeploy: true
     scaling: # Autoscaling configuration
       minInstances: 1
-      maxInstances: 3
+      maxInstances: 5
       targetMemoryPercent: 60 # Optional if targetCPUPercent is set
       targetCPUPercent: 60 # Optional if targetMemory is set
     envVars:
