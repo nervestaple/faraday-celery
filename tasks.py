@@ -1789,11 +1789,14 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
     page.get_by_role("textbox", name="Verification Code").fill(code)
     page.get_by_role("button", name="Verify Code").click()
 
+  POLL_TRIES_SECONDS = 120
+
   def poll_for_code():
-    code_bytes = redis_client.get('lennoxAuthCode')
-    while code_bytes is None:
+    for _ in range(POLL_TRIES_SECONDS):
       time.sleep(1)
       code_bytes = redis_client.get('lennoxAuthCode')
+      if code_bytes:
+        break
     redis_client.delete('lennoxAuthCode')
     return code_bytes.decode('ascii')
 
