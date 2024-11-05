@@ -2406,8 +2406,12 @@ def get_rheem_warranty(serial_number_raw, instant, equipment_scan_id, equipment_
     }
   )
   response = response.json()
+  if response is None:
+    return None
 
-  is_registered = response['RegistrationDate'] is not None
+  print('rheem response:', response)
+
+  is_registered = len(response['RegistrationDate']) > 5
 
   warranties = [{
     "name": w['WarrantyItem'],
@@ -2425,7 +2429,7 @@ def get_rheem_warranty(serial_number_raw, instant, equipment_scan_id, equipment_
     "model_number": response['ModelNumber'],
     "install_date": response['InstallationDate'],
     "is_registered": is_registered,
-    "register_date": response['RegistrationDate'],
+    "register_date": response['RegistrationDate'] if is_registered else None,
     "last_name_match": is_registered,
     "shipped_date": response['ShipDate'],
     "warranties": warranties,
