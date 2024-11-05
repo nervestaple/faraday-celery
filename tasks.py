@@ -2407,10 +2407,11 @@ def get_rheem_warranty(serial_number_raw, instant, equipment_scan_id, equipment_
   )
   response = response.json()
   print('rheem response:', response)
-  if response is None or not hasattr(response, 'WarrantyDetails'):
+  if response is None or 'WarrantyDetails' not in response:
+    print("rheem response is missing or malformed")
     return None
 
-  is_registered = hasattr(response, 'RegistrationDate') and len(
+  is_registered = 'RegistrationDate' in response and len(
     response['RegistrationDate']) > 5
 
   warranties = [{
