@@ -9,6 +9,7 @@ import re
 import redis
 import requests
 import signal
+import boto3
 
 from bs4 import BeautifulSoup
 from celery import Celery
@@ -42,6 +43,8 @@ from time import sleep
 from typing import Sequence
 from urllib.parse import urlparse
 from utils import search_and_parse_pdfs
+from uuid_extensions import uuid7str
+from botocore.exceptions import NoCredentialsError
 
 load_dotenv()
 
@@ -2387,23 +2390,50 @@ rheem_headers = {
   "x-clientid": RHEEM_CLIENT_ID,
 }
 
+RHEEM_SERIAL_REGEX = r'^(RHLN|RULN|RHNG|RMLN|RHUN|RUNG|RUUN|LWLP|GENG|RULP|ESLP|RHLP|RLP|GELN|GELP|RMNG|RMLP|GELW|GEUN|RNG|RCN|RUN|VGN|RN|RU|RO|RH|RM|SN|GE|RC|R)'
+
 
 @app.task
-def get_rheem_warranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name, owner_postal_code):
+def get_rheem_warranty(serial_number_raw, instant, equipment_scan_id, equipment_id, owner_last_name):
+  serial_number = re.sub(RHEEM_SERIAL_REGEX, '', serial_number_raw).strip()
+  print(serial_number)
   bearer_token = get_rheem_bearer_token()
   response = requests.get(
-    f"https://resource.myrheem.com/v1/rmu/verify?SerialNumber={serial_number}&HomeownerLastName={owner_last_name}&postalCode={owner_postal_code}",
+    f"https://resource.myrheem.com/v1/rmu/verify?SerialNumber={serial_number}&HomeownerLastName={owner_last_name}",
     headers={
       "authorization": f"Bearer {bearer_token}",
       **rheem_headers
     }
   )
   response = response.json()
-  return response
+
+  is_registered = response['RegistrationDate'] is not None
+
+  warranties = [{
+    "name": w['WarrantyItem'],
+    "description": w['WarrantyItem'],
+    "start_date": w['WarrantyStartDate'],
+    "end_date": w['WarrantyEndDate'],
+    "type": w['WarrantyType']
+  } for w in response['WarrantyDetails']]
+
+  certificate = None
+  if response['CertificateURL']:
+    certificate = upload_warranty_pdf_to_s3(response['CertificateURL'])
+
+  return {
+    "model_number": response['ModelNumber'],
+    "install_date": response['InstallationDate'],
+    "is_registered": is_registered,
+    "register_date": response['RegistrationDate'],
+    "last_name_match": is_registered,
+    "shipped_date": response['ShipDate'],
+    "warranties": warranties,
+    "certificate": certificate,
+  }
 
 
 def get_rheem_bearer_token():
-
   response = requests.get(
     f"https://auth.myrheem.com/v1/oauth2/authorize?response_type=token&client_id={RHEEM_CLIENT_ID}",
     headers={**rheem_headers}
@@ -2412,3 +2442,29 @@ def get_rheem_bearer_token():
   response = response.json()
   bearer_token = response['access_token']
   return bearer_token
+
+
+s3 = boto3.client(
+  's3',
+  aws_access_key_id=os.getenv('AWS_S3_ACCESS_KEY_ID'),
+  aws_secret_access_key=os.getenv('AWS_S3_SECRET_ACCESS_KEY')
+)
+warranty_bucket_name = os.getenv('AWS_S3_BUCKET_NAME')
+
+
+def upload_warranty_pdf_to_s3(file_url):
+  response = requests.get(file_url)
+  key = f"warranty-{uuid7str()}.pdf"
+
+  try:
+    s3.put_object(
+      Bucket=warranty_bucket_name,
+      Key=key,
+      Body=response.content,
+      ContentType='application/pdf'
+    )
+    file_url = f"https://{warranty_bucket_name}.s3.amazonaws.com/{key}"
+    return file_url
+  except NoCredentialsError:
+    print("Credentials not available")
+    return None

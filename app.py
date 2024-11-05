@@ -131,10 +131,9 @@ def warranty_lookup():
       return Response(serial_number, status=200)
 
   elif int(manufacturer) == 4:
-    postal_code = data['postal_code']
     if int(instant) == 1:
       warranty_data = get_rheem_warranty(
-          serial_number, instant, equipment_scan_id, equipment_id, last_name, postal_code)
+          serial_number, instant, equipment_scan_id, equipment_id, last_name)
       if warranty_data:
         return jsonify(warranty_data)
       else:
