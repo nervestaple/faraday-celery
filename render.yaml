@@ -63,6 +63,26 @@ services:
           name: app
           type: web
           envVarKey: ENVIRONMENT
+      - key: AWS_REGION
+        fromService:
+          name: app
+          type: web
+          envVarKey: AWS_REGION
+      - key: AWS_S3_ACCESS_KEY_ID
+        fromService:
+          name: app
+          type: web
+          envVarKey: AWS_S3_ACCESS_KEY_ID
+      - key: AWS_S3_SECRET_ACCESS_KEY
+        fromService:
+          name: app
+          type: web
+          envVarKey: AWS_S3_SECRET_ACCESS_KEY
+      - key: AWS_S3_BUCKET_NAME
+        fromService:
+          name: app
+          type: web
+          envVarKey: AWS_S3_BUCKET_NAME
   - type: web
     name: app
     region: ohio
@@ -102,6 +122,14 @@ services:
         sync: false
       - key: ENVIRONMENT
         value: "production"
+      - key: AWS_REGION
+        value: "us-east-1"
+      - key: AWS_S3_ACCESS_KEY_ID
+        value: "AKIA5KKIVM5R2PZTCEYQ"
+      - key: AWS_S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: AWS_S3_BUCKET_NAME
+        value: "faraday-warranty-files"
   - type: web
     name: flower
     region: ohio

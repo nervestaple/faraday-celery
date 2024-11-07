@@ -17,6 +17,7 @@ from celery.utils.log import get_task_logger
 from contextlib import contextmanager
 from datetime import datetime
 from dateutil.relativedelta import relativedelta
+from dateutil.parser import parse as dateparse
 from dotenv import load_dotenv
 from langchain.agents import Tool
 from langchain.callbacks import get_openai_callback
@@ -1789,7 +1790,6 @@ def getLennoxWarranty(serial_number, instant, equipment_scan_id, equipment_id, o
 
     code = poll_for_code()
     print('code:', code)
-    page.pause()
     page.get_by_role("textbox", name="Verification Code").click()
     page.get_by_role("textbox", name="Verification Code").fill(code)
     page.get_by_role("button", name="Verify Code").click()
@@ -2473,3 +2473,57 @@ def upload_warranty_pdf_to_s3(file_url):
   except NoCredentialsError:
     print("Credentials not available")
     return None
+
+
+# for future ref: check bradford white reg: https://warrantycenter.bradfordwhite.com/warranty/registrations-warranty/SC41081284
+
+def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name):
+  def get_warranty_object(page):
+    page.goto('https://warrantycenter.bradfordwhite.com/')
+    page.locator("#check_serial_number").click()
+    page.locator("#check_serial_number").fill(serial_number)
+    page.locator("#check_btn").click()
+    page.locator('.warranty-body').click()
+    cells = page.locator('.warranty-body').locator('tr td:nth-child(3)').all()
+    cell_data = [cell.text_content().strip() for cell in cells]
+    if len(cell_data) < 8:
+      return None
+
+    serial, model, heater_type, mfg_date_str, original_mfg_date_str, warranty_length, warranty_expire_date_str, registration_status = cell_data
+
+    mfg_date = dateparse(mfg_date_str)
+    warranty_expire_date = dateparse(warranty_expire_date_str.replace('*', ''))
+    install_date = (warranty_expire_date - relativedelta(years=6)).timestamp()
+
+    return {
+        "certificate": None,
+        "install_date": install_date,
+        "is_registered": registration_status != 'Not Registered',
+        "last_name_match": False,
+        "manufacture_date": mfg_date.timestamp(),
+        "model_number": model,
+        "register_date": None,
+        "shipped_date": None,
+        "warranties": [
+            {
+                "end_date": warranty_expire_date.timestamp(),
+                "name": "Glass Lined Tank and Parts",
+                "start_date": install_date
+            }
+        ]
+    }
+
+  warranty_object = scrape(get_warranty_object)
+  return warranty_object
+
+
+def scrape(scraper):
+  from playwright.sync_api import sync_playwright
+
+  with sync_playwright() as playwright:
+    is_dev = os.getenv('ENVIRONMENT') == 'development'
+    browser = playwright.chromium.launch(
+      headless=(not is_dev), slow_mo=50 if is_dev else 0)
+    context = browser.new_context()
+    page = context.new_page()
+    return scraper(page)

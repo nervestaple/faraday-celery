@@ -1,10 +1,12 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, Response
-from tasks import identify_new_model, getCarrierWarranty, getTraneWarranty, getYorkWarranty, getLennoxWarranty, get_rheem_warranty, manual_lookup, test_task, sum_test_task
+from tasks import identify_new_model, getCarrierWarranty, getTraneWarranty, getYorkWarranty, getLennoxWarranty, get_rheem_warranty, manual_lookup, test_task, sum_test_task, get_bradford_white_warranty
 from bs4 import BeautifulSoup
 import redis
 import json
+
+from manufacturers import manufacturers
 
 load_dotenv()
 
@@ -74,8 +76,10 @@ def warranty_lookup():
   equipment_scan_id = data['equipment_scan_id']
   equipment_id = data['equipment_id']
 
+  manufacturer_id = int(manufacturer)
+
   # Carrier Warranty Lookup
-  if int(manufacturer) == 2:
+  if manufacturer_id == manufacturers['Carrier']:
     if int(instant) == 1:
       warranty_data = getCarrierWarranty(
           serial_number, instant, equipment_scan_id, equipment_id, last_name)
@@ -89,7 +93,7 @@ def warranty_lookup():
       return Response(serial_number, status=200)
 
   # Trane Warranty Lookup
-  elif int(manufacturer) == 1:
+  elif manufacturer_id == manufacturers['Trane']:
     if int(instant) == 1:
       warranty_data = getTraneWarranty(
           serial_number, instant, equipment_scan_id, equipment_id, last_name)
@@ -103,7 +107,7 @@ def warranty_lookup():
       return Response(serial_number, status=200)
 
   # York Warranty Lookup
-  elif int(manufacturer) == 25:
+  elif manufacturer_id == manufacturers['York']:
     if int(instant) == 1:
       warranty_data = getYorkWarranty(
           serial_number, instant, equipment_scan_id, equipment_id, last_name)
@@ -117,7 +121,7 @@ def warranty_lookup():
       return Response(serial_number, status=200)
 
   # Lennox Warranty Lookup
-  elif int(manufacturer) == 22:
+  elif manufacturer_id == manufacturers['Lennox']:
     if int(instant) == 1:
       warranty_data = getLennoxWarranty(
           serial_number, instant, equipment_scan_id, equipment_id, last_name)
@@ -130,7 +134,7 @@ def warranty_lookup():
           serial_number, instant, equipment_scan_id, equipment_id, last_name)
       return Response(serial_number, status=200)
 
-  elif int(manufacturer) == 4:
+  elif manufacturer_id == manufacturers['Rheem']:
     if int(instant) == 1:
       warranty_data = get_rheem_warranty(
           serial_number, instant, equipment_scan_id, equipment_id, last_name)
@@ -140,6 +144,19 @@ def warranty_lookup():
         return Response(None, status=500)
     else:
       warranty_data = get_rheem_warranty.delay(
+          serial_number, instant, equipment_scan_id, equipment_id, last_name)
+      return Response(serial_number, status=200)
+
+  elif manufacturer_id == manufacturers['Bradford White']:
+    if int(instant) == 1:
+      warranty_data = get_bradford_white_warranty(
+          serial_number, instant, equipment_scan_id, equipment_id, last_name)
+      if warranty_data:
+        return jsonify(warranty_data)
+      else:
+        return Response(None, status=500)
+    else:
+      warranty_data = get_bradford_white_warranty.delay(
           serial_number, instant, equipment_scan_id, equipment_id, last_name)
       return Response(serial_number, status=200)
 
