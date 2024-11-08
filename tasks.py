@@ -2476,7 +2476,7 @@ def upload_warranty_pdf_to_s3(file_url):
 
 
 # for future ref: check bradford white reg: https://warrantycenter.bradfordwhite.com/warranty/registrations-warranty/SC41081284
-
+@app.task
 def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name):
   def get_warranty_object(page):
     page.goto('https://warrantycenter.bradfordwhite.com/')
