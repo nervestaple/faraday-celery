@@ -2496,28 +2496,38 @@ def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equip
     install_date = (warranty_expire_date - relativedelta(years=6)).timestamp()
 
     return {
-      "filedata": None,
-      "warranty_object": {
-        "certificate": None,
-        "install_date": install_date,
-        "is_registered": registration_status != 'Not Registered',
-        "last_name_match": False,
-        "manufacture_date": mfg_date.timestamp(),
-        "model_number": model,
-        "register_date": None,
-        "shipped_date": None,
-        "warranties": [
-            {
-                "end_date": warranty_expire_date.timestamp(),
-                "name": "Glass Lined Tank and Parts",
-                "start_date": install_date
-            }
-        ]
-      }
+      "certificate": None,
+      "install_date": install_date,
+      "is_registered": registration_status != 'Not Registered',
+      "last_name_match": False,
+      "manufacture_date": mfg_date.timestamp(),
+      "model_number": model,
+      "register_date": None,
+      "shipped_date": None,
+      "warranties": [
+          {
+              "end_date": warranty_expire_date.timestamp(),
+              "name": "Glass Lined Tank and Parts",
+              "start_date": install_date
+          }
+      ]
     }
 
   warranty_object = scrape(get_warranty_object)
-  return warranty_object
+
+  if int(instant) == 1:
+    return {"warranty_object": warranty_object, "filedata": None}
+
+  else:
+    if equipment_scan_id and equipment_scan_id is not (None):
+      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={
+                        "warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": None}, timeout=30)
+      print(r)
+
+    if equipment_id and equipment_id is not (None):
+      r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={
+                        "warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": None}, timeout=30)
+      print(r)
 
 
 def scrape(scraper):
