@@ -2496,6 +2496,8 @@ def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equip
     install_date = (warranty_expire_date - relativedelta(years=6)).timestamp()
 
     return {
+      "filedata": None,
+      "warranty_object": {
         "certificate": None,
         "install_date": install_date,
         "is_registered": registration_status != 'Not Registered',
@@ -2511,6 +2513,7 @@ def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equip
                 "start_date": install_date
             }
         ]
+      }
     }
 
   warranty_object = scrape(get_warranty_object)
