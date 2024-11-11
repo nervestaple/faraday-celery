@@ -1,12 +1,14 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, jsonify, request, Response
-from tasks import identify_new_model, getCarrierWarranty, getTraneWarranty, getYorkWarranty, getLennoxWarranty, get_rheem_warranty, manual_lookup, test_task, sum_test_task, get_bradford_white_warranty
 from bs4 import BeautifulSoup
 import redis
 import json
 
-from manufacturers import manufacturers
+from constants import LENNOX_AUTH_CODE_KEY
+from tasks import sum_test_task, test_task
+from tasks.warranty_lookup import warranty_lookups_by_manufacturer_id
+from tasks.identify_new_model import identify_new_model
 
 load_dotenv()
 
@@ -77,88 +79,27 @@ def warranty_lookup():
   equipment_id = data['equipment_id']
 
   manufacturer_id = int(manufacturer)
+  if manufacturer_id not in warranty_lookups_by_manufacturer_id:
+    return Response('Manufacturer not supported', status=400)
 
-  # Carrier Warranty Lookup
-  if manufacturer_id == manufacturers['Carrier']:
-    if int(instant) == 1:
-      warranty_data = getCarrierWarranty(
-          serial_number, instant, equipment_scan_id, equipment_id, last_name)
-      if warranty_data:
-        return jsonify(warranty_data)
-      else:
-        return Response(None, status=500)
-    else:
-      warranty_data = getCarrierWarranty.delay(
-          serial_number, instant, equipment_scan_id, equipment_id, last_name)
-      return Response(serial_number, status=200)
+  lookup = warranty_lookups_by_manufacturer_id[manufacturer_id]
 
-  # Trane Warranty Lookup
-  elif manufacturer_id == manufacturers['Trane']:
-    if int(instant) == 1:
-      warranty_data = getTraneWarranty(
-          serial_number, instant, equipment_scan_id, equipment_id, last_name)
-      if warranty_data:
-        return jsonify(warranty_data)
-      else:
-        return Response(None, status=500)
+  if int(instant) == 1:
+    warranty_data = lookup(
+        serial_number, instant, equipment_scan_id, equipment_id, last_name)
+    if warranty_data:
+      return jsonify(warranty_data)
     else:
-      warranty_data = getTraneWarranty.delay(
-          serial_number, instant, equipment_scan_id, equipment_id, last_name)
-      return Response(serial_number, status=200)
+      return Response(None, status=500)
+  else:
+    warranty_data = lookup.delay(
+        serial_number, instant, equipment_scan_id, equipment_id, last_name)
+    return Response(serial_number, status=200)
 
-  # York Warranty Lookup
-  elif manufacturer_id == manufacturers['York']:
-    if int(instant) == 1:
-      warranty_data = getYorkWarranty(
-          serial_number, instant, equipment_scan_id, equipment_id, last_name)
-      if warranty_data:
-        return jsonify(warranty_data)
-      else:
-        return Response(None, status=500)
-    else:
-      warranty_data = getYorkWarranty.delay(
-          serial_number, instant, equipment_scan_id, equipment_id, last_name)
-      return Response(serial_number, status=200)
 
-  # Lennox Warranty Lookup
-  elif manufacturer_id == manufacturers['Lennox']:
-    if int(instant) == 1:
-      warranty_data = getLennoxWarranty(
-          serial_number, instant, equipment_scan_id, equipment_id, last_name)
-      if warranty_data:
-        return jsonify(warranty_data)
-      else:
-        return Response(None, status=500)
-    else:
-      warranty_data = getLennoxWarranty.delay(
-          serial_number, instant, equipment_scan_id, equipment_id, last_name)
-      return Response(serial_number, status=200)
-
-  elif manufacturer_id == manufacturers['Rheem']:
-    if int(instant) == 1:
-      warranty_data = get_rheem_warranty(
-          serial_number, instant, equipment_scan_id, equipment_id, last_name)
-      if warranty_data:
-        return jsonify(warranty_data)
-      else:
-        return Response(None, status=500)
-    else:
-      warranty_data = get_rheem_warranty.delay(
-          serial_number, instant, equipment_scan_id, equipment_id, last_name)
-      return Response(serial_number, status=200)
-
-  elif manufacturer_id == manufacturers['Bradford White']:
-    if int(instant) == 1:
-      warranty_data = get_bradford_white_warranty(
-          serial_number, instant, equipment_scan_id, equipment_id, last_name)
-      if warranty_data:
-        return jsonify(warranty_data)
-      else:
-        return Response(None, status=500)
-    else:
-      warranty_data = get_bradford_white_warranty.delay(
-          serial_number, instant, equipment_scan_id, equipment_id, last_name)
-      return Response(serial_number, status=200)
+@app.route('/warranty-registration', methods=['POST'])
+def warranty_registration():
+  print('warranty registration', request.json)
 
 
 redis_client = redis.from_url(os.getenv('CELERY_BROKER_URL'), db=0)
@@ -181,5 +122,5 @@ def lennox_auth_code():
   if not code:
     return Response('Could not find code', status=400)
 
-  redis_client.set('lennoxAuthCode', code)
+  redis_client.set(LENNOX_AUTH_CODE_KEY, code)
   return Response('Code saved', status=200)
