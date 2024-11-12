@@ -122,6 +122,7 @@ def register_trane_warranty(payload):
     system_number = 1
     for system in systems:
       equipments = system.get('equipment')
+      page.pause()
       if system_number > 1:
         # page.pause()
         page.locator('#newSystem').click()
