@@ -12,7 +12,11 @@ celery_app = Celery('tasks', broker=os.getenv("CELERY_BROKER_URL"))
 celery_logger = get_task_logger(__name__)
 
 celery_app.autodiscover_tasks(
-  ['tasks', 'tasks.warranty_lookup'],
+  [
+    'tasks',
+    'tasks.warranty_lookup',
+    'tasks.warranty_registration'
+  ],
   force=True
 )
 

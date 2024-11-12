@@ -9,6 +9,7 @@ from constants import LENNOX_AUTH_CODE_KEY
 from tasks import sum_test_task, test_task
 from tasks.warranty_lookup import warranty_lookups_by_manufacturer_id
 from tasks.identify_new_model import identify_new_model
+from tasks.warranty_registration import register_warranties
 
 load_dotenv()
 
@@ -99,7 +100,9 @@ def warranty_lookup():
 
 @app.route('/warranty-registration', methods=['POST'])
 def warranty_registration():
-  print('warranty registration', request.json)
+  payload = request.json
+  register_warranties(payload)
+  return Response('Warranties registered', status=200)
 
 
 redis_client = redis.from_url(os.getenv('CELERY_BROKER_URL'), db=0)

@@ -23,6 +23,7 @@ from typing import Sequence
 
 from celery_app import celery_app
 from constants import LENNOX_AUTH_CODE_KEY
+from scrape import scrape_with_context
 
 load_dotenv()
 
@@ -37,8 +38,8 @@ def get_lennox_warranty(serial_number, instant, equipment_scan_id, equipment_id,
   print(f"### Starting Lennox Warranty Lookup: {serial_number}")
 
   load_dotenv()
-  LENNOX_EMAIL = os.environ.get("LENNOX_EMAIL")
-  LENNOX_PASSWORD = os.environ.get("LENNOX_PASSWORD")
+  LENNOX_EMAIL = os.getenv("LENNOX_EMAIL")
+  LENNOX_PASSWORD = os.getenv("LENNOX_PASSWORD")
 
   from playwright.sync_api import Playwright, sync_playwright
 
@@ -83,21 +84,17 @@ def get_lennox_warranty(serial_number, instant, equipment_scan_id, equipment_id,
     try_2fa(page)
     print('passed try2FA', page.url)
 
-  def run(playwright: Playwright) -> None:
+  def scraper(page, **kwargs) -> None:
     text = None
     html = None
     pdf_base64 = None
-    is_dev = os.getenv('ENVIRONMENT') == 'development'
-    browser = playwright.chromium.launch(
-        headless=(not is_dev), slow_mo=50 if is_dev else 0)
-    context = browser.new_context()
-    context.add_cookies([{
+    kwargs.get('context').add_cookies([{
         'name': 'lennoxUserRegion',
         'value': 'US',
         'domain': '.lennoxpros.com',
         'path': '/'
     }])
-    page = context.new_page()
+
     lennox_login(page)
 
     page.get_by_role("link", name="Warranty").first.click()
@@ -145,26 +142,20 @@ def get_lennox_warranty(serial_number, instant, equipment_scan_id, equipment_id,
       for page in reader.pages:
         text = page.extract_text()
         texts += text
-
-      # ---------------------
-      context.close()
-      browser.close()
       return {"text": texts, "pdf_base64": pdf_base64, "html": None}
     elif html is not (None):
       return {"text": None, "pdf_base64": None, "html": html}
     else:
-      context.close()
-      browser.close()
       return None
 
   text = None
   html = None
-  with sync_playwright() as playwright:
-    result = run(playwright)
-    if result is not (None):
-      text = result["text"]
-      html = result["html"]
-      pdf_base64 = result["pdf_base64"]
+
+  result = scrape_with_context(scraper)
+  if result is not (None):
+    text = result["text"]
+    html = result["html"]
+    pdf_base64 = result["pdf_base64"]
 
   if result is not (None):
     if html is not (None):

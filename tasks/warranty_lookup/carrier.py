@@ -2,7 +2,6 @@ import time
 import base64
 import img2pdf
 import json
-import os
 import requests
 
 from bs4 import BeautifulSoup
@@ -12,6 +11,7 @@ from PIL import Image
 from tempfile import NamedTemporaryFile
 
 from celery_app import celery_app
+from scrape import scrape
 
 load_dotenv()
 
@@ -20,16 +20,9 @@ load_dotenv()
 def get_carrier_warranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name):
   print(f"### Starting Carrier Warranty Lookup: {serial_number}")
 
-  from playwright.sync_api import Playwright, sync_playwright, expect
-
-  def run(playwright: Playwright) -> None:
+  def scraper(page):
     html = None
     pdf = None
-    is_dev = os.getenv('ENVIRONMENT') == 'development'
-    browser = playwright.chromium.launch(
-        headless=(not is_dev), slow_mo=50 if is_dev else 0)
-    context = browser.new_context()
-    page = context.new_page()
     page.goto(
         f"https://www.carrierenterprise.com/warranty/{serial_number}")
     try:
@@ -93,9 +86,7 @@ def get_carrier_warranty(serial_number, instant, equipment_scan_id, equipment_id
         img_temp_file.flush()
         pdf_temp_file.flush()
 
-        context.close()
-        browser.close()
-        return {"html": html, "pdf": pdf_temp_file}
+        return html, pdf_temp_file
       except Exception as e:
         print(f"something went wrong: {e}")
 
@@ -103,18 +94,9 @@ def get_carrier_warranty(serial_number, instant, equipment_scan_id, equipment_id
       print(f"something went wrong: {e}")
     # print(html)
 
-    # ---------------------
-    context.close()
-    browser.close()
-    return {"html": html, "pdf": None}
+    return html, pdf
 
-  html = None
-  pdf = None
-  with sync_playwright() as playwright:
-    result = run(playwright)
-    if result is not (None):
-      html = result["html"]
-      pdf = result["pdf"]
+  html, pdf = scrape(scraper)
 
 # start bs4 scrape
   # return html

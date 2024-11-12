@@ -1,47 +1,9 @@
-import time
-import base64
-import img2pdf
-import io
 import json
-import os
-import pdfplumber
-import re
-import redis
 import requests
-import boto3
 
-from bs4 import BeautifulSoup
-from datetime import datetime
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse as dateparse
 from dotenv import load_dotenv
-from langchain.agents import Tool
-from langchain.callbacks import get_openai_callback
-from langchain.chains import create_extraction_chain
-from langchain.chains import create_extraction_chain_pydantic
-from langchain.chains import LLMChain
-from langchain.chat_models import AzureChatOpenAI
-from langchain.document_loaders import AsyncChromiumLoader
-from langchain.document_loaders import OnlinePDFLoader
-from langchain.document_loaders import PyPDFLoader
-from langchain.document_transformers import BeautifulSoupTransformer
-from langchain.output_parsers import PydanticOutputParser
-from langchain.prompts import PromptTemplate
-from langchain.prompts import PromptTemplate
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.text_splitter import CharacterTextSplitter
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.utilities import SerpAPIWrapper
-from PIL import Image
-from pydantic import BaseModel
-from serpapi.google_search import GoogleSearch
-from tempfile import NamedTemporaryFile
-from time import sleep
-from typing import Sequence
-from urllib.parse import urlparse
-from utils import search_and_parse_pdfs
-from uuid_extensions import uuid7str
-from botocore.exceptions import NoCredentialsError
 
 from celery_app import celery_app
 
@@ -103,15 +65,3 @@ def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equip
     r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={
                       "warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": None}, timeout=30)
     print(r)
-
-
-def scrape(scraper):
-  from playwright.sync_api import sync_playwright
-
-  with sync_playwright() as playwright:
-    is_dev = os.getenv('ENVIRONMENT') == 'development'
-    browser = playwright.chromium.launch(
-      headless=(not is_dev), slow_mo=50 if is_dev else 0)
-    context = browser.new_context()
-    page = context.new_page()
-    return scraper(page)
