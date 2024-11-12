@@ -14,7 +14,7 @@ def create(playwright):
 def scrape_with_context(scraper):
   with sync_playwright() as playwright:
     page, context, browser = create(playwright)
-    result = scraper(page, context)
+    result = scraper(page, context=context)
     browser.close()
     return result
 
