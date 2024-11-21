@@ -102,7 +102,7 @@ def warranty_lookup():
 def warranty_registration():
   payload = request.json
   register_warranties(payload)
-  return Response('Warranties registered', status=200)
+  return Response('Registering warranties...', status=200)
 
 
 redis_client = redis.from_url(os.getenv('CELERY_BROKER_URL'), db=0)
