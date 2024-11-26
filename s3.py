@@ -16,15 +16,27 @@ s3 = boto3.client(
 warranty_bucket_name = os.getenv('AWS_S3_BUCKET_NAME')
 
 
-def upload_warranty_pdf_to_s3(file_url):
+def upload_remote_warranty_pdf_to_s3(file_url, manufacturer_name):
   response = requests.get(file_url)
-  key = f"warranty-{uuid7str()}.pdf"
+  if response.status_code != 200:
+    return None
+
+  return upload_warranty_pdf_to_s3(response.content, manufacturer_name)
+
+
+def upload_local_warranty_pdf_to_s3(file_path, manufacturer_name):
+  with open(file_path, 'rb') as file:
+    return upload_warranty_pdf_to_s3(file.read(), manufacturer_name)
+
+
+def upload_warranty_pdf_to_s3(file_data, manufacturer_name):
+  key = f"warranty-{manufacturer_name.lower()}-{uuid7str()}.pdf"
 
   try:
     s3.put_object(
       Bucket=warranty_bucket_name,
       Key=key,
-      Body=response.content,
+      Body=file_data,
       ContentType='application/pdf'
     )
     file_url = f"https://{warranty_bucket_name}.s3.amazonaws.com/{key}"

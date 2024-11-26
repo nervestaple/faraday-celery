@@ -1,4 +1,5 @@
 import time
+from playwright.sync_api import Page
 
 from celery_app import celery_app
 from scrape import scrape
@@ -9,7 +10,7 @@ def get_aosmith_warranty(serial_number, instant, equipment_scan_id, equipment_id
 
   print(f"### Starting AO Smith Warranty Lookup: {serial_number}")
 
-  def scraper(page):
+  def scraper(page: Page):
     text = None
     download = None
     page.goto("https://www.hotwater.com/support/warranty-verification.html")

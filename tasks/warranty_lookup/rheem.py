@@ -4,7 +4,7 @@ import requests
 from dotenv import load_dotenv
 
 from celery_app import celery_app
-from s3 import upload_warranty_pdf_to_s3
+from s3 import upload_remote_warranty_pdf_to_s3
 
 load_dotenv()
 
@@ -61,7 +61,8 @@ def get_rheem_warranty(serial_number_raw, instant, equipment_scan_id, equipment_
 
   certificate = None
   if response['CertificateURL']:
-    certificate = upload_warranty_pdf_to_s3(response['CertificateURL'])
+    certificate = upload_remote_warranty_pdf_to_s3(
+      response['CertificateURL'], 'rheem')
 
   return {
     "model_number": response['ModelNumber'],

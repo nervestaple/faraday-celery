@@ -3,6 +3,7 @@ import base64
 import img2pdf
 import json
 import requests
+from playwright.sync_api import Page
 
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -20,7 +21,7 @@ load_dotenv()
 def get_carrier_warranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name):
   print(f"### Starting Carrier Warranty Lookup: {serial_number}")
 
-  def scraper(page):
+  def scraper(page: Page):
     html = None
     pdf = None
     page.goto(

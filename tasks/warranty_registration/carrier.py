@@ -1,14 +1,12 @@
 from celery_app import celery_app
 from scrape import scrape
+from playwright.sync_api import Page
 
 
-@celery_app.task
-def register_carrier_warranty(payload):
+def register_carrier_warranty(payload, systems):
   print(payload)
 
-  def scraper(page):
-    error = False
-    download = None
+  def scraper(page: Page):
     page.goto(
       "https://productregistration.carrier.com/public/RegistrationForm_Carrier?brand=CARRIER")
     page.locator("#Products_0__SerialNumber").fill("2524V61940")

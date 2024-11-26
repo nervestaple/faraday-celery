@@ -300,3 +300,9 @@ manufacturers = {
   "Sylvania": 335,
   "SolarEdge": 336
 }
+
+parent_manufacturers = {
+  manufacturers['Goodman']: manufacturers['Daikin']
+}
+
+manufacturer_name_by_id = {v: k for k, v in manufacturers.items()}
