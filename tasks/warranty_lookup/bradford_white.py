@@ -6,6 +6,7 @@ from dateutil.parser import parse as dateparse
 from dotenv import load_dotenv
 
 from celery_app import celery_app
+from scrape import scrape
 
 load_dotenv()
 

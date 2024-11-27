@@ -61,7 +61,7 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
 
     with page.expect_popup() as popup_info:
       page.get_by_role('button', name='View Warranty Certificate').click()
-      pdf_url = popup_info.value.url()
+      pdf_url = popup_info.value.url
       uploaded_pdf_url = upload_remote_warranty_pdf_to_s3(pdf_url, 'trane')
       return uploaded_pdf_url, None
 
