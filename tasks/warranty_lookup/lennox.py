@@ -24,7 +24,7 @@ from typing import Sequence
 
 from celery_app import celery_app
 from constants import LENNOX_AUTH_CODE_KEY
-from scrape import scrape_with_context
+from scrape import scrape
 
 load_dotenv()
 
@@ -85,11 +85,11 @@ def get_lennox_warranty(serial_number, instant, equipment_scan_id, equipment_id,
     try_2fa(page)
     print('passed try2FA', page.url)
 
-  def scraper(page: Page, **kwargs):
+  def scraper(page: Page):
     text = None
     html = None
     pdf_base64 = None
-    kwargs.get('context').add_cookies([{
+    page.context.add_cookies([{
         'name': 'lennoxUserRegion',
         'value': 'US',
         'domain': '.lennoxpros.com',
@@ -147,7 +147,7 @@ def get_lennox_warranty(serial_number, instant, equipment_scan_id, equipment_id,
     else:
       return {"text": None, "pdf_base64": None, "html": html}
 
-  text, html, pdf_base64 = scrape_with_context(scraper)
+  text, html, pdf_base64 = scrape(scraper)
 
   if html is not (None):
     soup = BeautifulSoup(html, "html.parser")

@@ -2,7 +2,6 @@ import time
 from typing import Union
 from playwright.sync_api import Page
 
-from celery_app import celery_app
 from scrape import scrape
 from s3 import upload_remote_warranty_pdf_to_s3
 
@@ -18,6 +17,7 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
       'https://warrantyregistration.tranetechnologies.com/wrApp/index.html#/trane/welcome')
 
     page.pause()
+
     if address_type == 'Residential':
       page.get_by_role('radio').first.check()
     elif address_type == 'Commercial':
@@ -57,11 +57,16 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
         add_equipment_item(page, equipment_item)
 
     page.get_by_role("button", name="Continue").click()
+    page.pause()
     page.get_by_role("button", name="Complete Registration").click()
 
-    with page.expect_popup() as popup_info:
+    with page.expect_download() as download_info:
+      page.pause()
       page.get_by_role('button', name='View Warranty Certificate').click()
-      pdf_url = popup_info.value.url
+      print('DOWNLOAD')
+      print(download_info.value)
+      print(download_info.value.url)
+      pdf_url = download_info.value.url
       uploaded_pdf_url = upload_remote_warranty_pdf_to_s3(pdf_url, 'trane')
       return uploaded_pdf_url, None
 
