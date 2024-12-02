@@ -122,10 +122,20 @@ def register_warranty_for_manufacturer(manufacturer_id, payload, systems):
     'needs_review': error_reason is not None,
     'warranty_review_reason': error_reason
   }
-  print('Registering warranty and posting to xano:', post_body)
-  r = requests.post(
-    'https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/warranty_upload', data=post_body, timeout=30)
-  print(r)
+  print('registering warranty and posting to xano:', post_body)
+  TRIES = 5
+  for try_num in range(TRIES):
+    try:
+      r = requests.post(
+        'https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/warranty_upload', data=post_body, timeout=30)
+      print(r)
+      break
+    except Exception as e:
+      if try_num == TRIES - 1:
+        print(f'failed posting to xano after {TRIES} tries, giving up')
+        return
+      print(e)
+      print('failed posting to xano, trying again...')
 
 
 def filter_equipment_by_install_date(payload):
