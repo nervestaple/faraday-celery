@@ -120,7 +120,8 @@ def register_warranty_for_manufacturer(manufacturer_id, payload, systems):
     'companies_id': payload['companies_id'],
     'manufacturer': manufacturer_name_by_id[manufacturer_id],
     'needs_review': error_reason is not None,
-    'warranty_review_reason': error_reason
+    'warranty_review_reason': error_reason,
+    'approved': False
   }
   print('registering warranty and posting to xano:', post_body)
   TRIES = 5
