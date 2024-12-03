@@ -26,7 +26,9 @@ def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equip
     if len(cell_data) < 8:
       return None
 
-    serial, model, heater_type, mfg_date_str, original_mfg_date_str, warranty_length, warranty_expire_date_str, registration_status = cell_data
+    serial, model, heater_type, mfg_date_str, original_mfg_date_str, warranty_length, warranty_expire_date_str, registration_status, *rest = cell_data
+    if len(rest) > 0:
+      print('Unexpected extra data:', rest)
 
     mfg_date = dateparse(mfg_date_str)
     warranty_expire_date = dateparse(warranty_expire_date_str.replace('*', ''))
