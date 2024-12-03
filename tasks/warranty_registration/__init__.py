@@ -90,6 +90,8 @@ def register_warranties(payload):
   payload['first_name'] = ' '.join(name_tokens[0:-1])
   payload['last_name'] = name_tokens[-1]
 
+  print('Warranty registration payload received:', payload)
+
   filtered_equipment = filter_equipment_by_install_date(payload)
   systems_by_manufacturer = group_equipment_by_manufacturer_and_system(
     filtered_equipment)
@@ -101,7 +103,7 @@ def register_warranties(payload):
       continue
 
     systems = list(systems_by_name.values())
-    print('Registering warranties for manufacturer:', manufacturer_id)
+    print(f'Registering warranties for job_id: {payload['job_id']}, manufacturer_id: {manufacturer_id}')
     print('Systems:', systems)
     register_warranty_for_manufacturer.delay(manufacturer_id, payload, systems)
 
@@ -124,19 +126,9 @@ def register_warranty_for_manufacturer(manufacturer_id, payload, systems):
     'approved': False
   }
   print('registering warranty and posting to xano:', post_body)
-  TRIES = 5
-  for try_num in range(TRIES):
-    try:
-      r = requests.post(
-        'https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/warranty_upload', data=post_body, timeout=30)
-      print(r)
-      break
-    except Exception as e:
-      if try_num == TRIES - 1:
-        print(f'failed posting to xano after {TRIES} tries, giving up')
-        return
-      print(e)
-      print('failed posting to xano, trying again...')
+  r = requests.post(
+    'https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/warranty_upload', data=post_body, timeout=30)
+  print(r)
 
 
 def filter_equipment_by_install_date(payload):
