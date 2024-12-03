@@ -87,6 +87,7 @@ warranty_registration_methods = {
 
 
 def register_warranties(payload):
+  job_id = payload['job_id']
   name_tokens = payload['name'].split(' ')
   payload['first_name'] = ' '.join(name_tokens[0:-1])
   payload['last_name'] = name_tokens[-1]
@@ -104,7 +105,8 @@ def register_warranties(payload):
       continue
 
     systems = list(systems_by_name.values())
-    print(f'Registering warranties for job_id: {payload['job_id']}, manufacturer_id: {manufacturer_id}')
+    print(
+      f'Registering warranties for job_id: {job_id}, manufacturer_id: {manufacturer_id}')
     print('Systems:', systems)
     register_warranty_for_manufacturer.delay(manufacturer_id, payload, systems)
 
