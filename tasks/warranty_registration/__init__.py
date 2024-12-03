@@ -113,8 +113,13 @@ def register_warranties(payload):
 
 @celery_app.task
 def register_warranty_for_manufacturer(manufacturer_id, payload, systems):
+  job_id = payload['job_id']
+  print(
+    f'Starting warranty registration task for manufacturer_id: {manufacturer_id}, job_id: {job_id}')
   register_method = warranty_registration_methods.get(manufacturer_id)
   if not register_method:
+    print(
+      f'Missing warranty registration method for manufacturer_id: {manufacturer_id}, job_id: {job_id}, quitting...')
     return
 
   warranty_s3_url, error_reason = register_method(payload, systems)
