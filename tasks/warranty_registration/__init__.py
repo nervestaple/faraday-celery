@@ -1,6 +1,7 @@
 from collections import defaultdict
 from dotenv import load_dotenv
 import requests
+import time
 
 from celery_app import celery_app
 from manufacturers import manufacturers, parent_manufacturers, manufacturer_name_by_id
@@ -90,7 +91,7 @@ def register_warranties(payload):
   payload['first_name'] = ' '.join(name_tokens[0:-1])
   payload['last_name'] = name_tokens[-1]
 
-  print('Warranty registration payload received:', payload)
+  print('Warranty registration payload:', payload)
 
   filtered_equipment = filter_equipment_by_install_date(payload)
   systems_by_manufacturer = group_equipment_by_manufacturer_and_system(
@@ -125,10 +126,22 @@ def register_warranty_for_manufacturer(manufacturer_id, payload, systems):
     'warranty_review_reason': error_reason,
     'approved': False
   }
+
   print('registering warranty and posting to xano:', post_body)
-  r = requests.post(
-    'https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/warranty_upload', data=post_body, timeout=30)
-  print(r)
+  TRIES = 3
+  for try_num in range(TRIES):
+    try:
+      r = requests.post(
+        'https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/warranty_upload', data=post_body, timeout=120)
+      print(r)
+      break
+    except Exception as e:
+      if try_num == TRIES - 1:
+        print(f'failed posting to xano after {TRIES} tries, giving up')
+        return
+      print(e)
+      print('failed posting to xano, trying again...')
+      time.sleep(5)
 
 
 def filter_equipment_by_install_date(payload):
