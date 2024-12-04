@@ -31,8 +31,7 @@ def upload_local_warranty_pdf_to_s3(file_path, metadata):
 
 def upload_warranty_pdf_to_s3(file_data, metadata: dict):
   job_id = metadata['job_id'] if metadata.has('job_id') else ''
-  manufacturer_name = metadata['manufacturer_name'] if metadata.has(
-    'manufacturer_name') else ''
+  manufacturer_name = metadata['manufacturer_name'] if 'manufacturer_name' in metadata else ''
 
   key = f'warranty-{job_id}-{manufacturer_name.lower()}-{uuid7str()}.pdf'
 

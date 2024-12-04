@@ -99,7 +99,12 @@ def identify_new_model(model_number, supporting_data):
     bad_urls = []
 
     # model_number = "22V50F1"
+
     print(f"*** Starting new model search: {model_number}")
+
+    if model_number is None or model_number == "" or model_number == "null":
+      print("invalid model number, bailing out...")
+      return None
 
     # Setup SerpAPI Tool
     params = {
