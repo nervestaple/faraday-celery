@@ -45,7 +45,7 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
 
     print('Trane warranty registration page filled', log_context)
 
-    time.sleep(2000)
+    time.sleep(2)
     page.pause()
     if page.get_by_text('Verify your Home owner/').is_visible():
       print('verifying address', log_context)
