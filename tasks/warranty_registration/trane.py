@@ -7,6 +7,8 @@ from s3 import upload_remote_warranty_pdf_to_s3
 
 
 def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[str, None]]:
+  log_context = {'job_id': payload['job_id'], 'manufacturer_id': 'trane'}
+
   address_type = payload.get('type')
   address = payload.get('address')
   first_name = payload.get('first_name')
@@ -16,6 +18,7 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
     page.goto(
       'https://warrantyregistration.tranetechnologies.com/wrApp/index.html#/trane/welcome')
 
+    print('Trane warranty registration page loaded', log_context)
     page.pause()
 
     if address_type == 'Residential':
@@ -24,7 +27,7 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
       page.get_by_role('radio').nth(1).check()
     else:
       error = ('Unknown customer type')
-      print('Unknown customer type')
+      print('Unknown customer type', log_context)
       return None, error
 
     page.get_by_placeholder('Enter First Name').click()
@@ -40,10 +43,12 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
 
     page.get_by_role('button', name='Continue').click(timeout=5000)
 
+    print('Trane warranty registration page filled', log_context)
+
     time.sleep(2000)
     page.pause()
     if page.get_by_text('Verify your Home owner/').is_visible():
-      print('verifying address')
+      print('verifying address', log_context)
       page.get_by_text('Verify your Home owner/').click()
       page.get_by_role('button', name='Continue').click()
 
@@ -61,15 +66,15 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
 
     page.get_by_role("button", name="Continue").click()
     page.pause()
-    print(f"BEFORE COMPLETING TRANE REGISTRATION, job_id: {payload['job_id']}")
+    print("BEFORE COMPLETING TRANE REGISTRATION", log_context)
     page.get_by_role("button", name="Complete Registration").click()
     print(
-      f"SUCCESS COMPLETING TRANE REGISTRATION, job_id: {payload['job_id']}")
+      "SUCCESS COMPLETING TRANE REGISTRATION", log_context)
 
     with page.expect_download() as download_info:
       page.pause()
       page.get_by_role('button', name='View Warranty Certificate').click()
-      print('DOWNLOAD')
+      print('DOWNLOAD', log_context)
       print(download_info.value)
       print(download_info.value.url)
       pdf_url = download_info.value.url
