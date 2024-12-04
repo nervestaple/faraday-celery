@@ -377,7 +377,8 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
     api_path_env = 'https://api.warrantyyourway.com'
     pdf_path = f"{api_path_env}/web/registration-service/v1/download-certificate?registrationNumber={reg_num}&sessionToken={session_token}"
 
-    uploaded_pdf_path = upload_remote_warranty_pdf_to_s3(pdf_path, 'lennox')
+    uploaded_pdf_path = upload_remote_warranty_pdf_to_s3(
+      pdf_path, {'job_id': payload['job_id'], 'manufacturer_id': 'lennox'})
     return uploaded_pdf_path, None
 
     # ---------------------

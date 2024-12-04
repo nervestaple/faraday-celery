@@ -151,7 +151,8 @@ def register_daikin_warranty(payload, systems) -> tuple[Union[str, None], Union[
         force=True, timeout=2000)
 
       local_path = download_info.value.path()
-      uploaded_pdf_path = upload_local_warranty_pdf_to_s3(local_path, 'daikin')
+      uploaded_pdf_path = upload_local_warranty_pdf_to_s3(
+        local_path, {'job_id': payload['job_id'], 'manufacturer_id': 'daikin'})
       return uploaded_pdf_path, None
 
   return scrape(scraper)

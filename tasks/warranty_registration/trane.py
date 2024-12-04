@@ -70,7 +70,8 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
       print(download_info.value)
       print(download_info.value.url)
       pdf_url = download_info.value.url
-      uploaded_pdf_url = upload_remote_warranty_pdf_to_s3(pdf_url, 'trane')
+      uploaded_pdf_url = upload_remote_warranty_pdf_to_s3(
+        pdf_url, {'job_id': payload['job_id'], 'manufacturer_id': 'trane'})
       return uploaded_pdf_url, None
 
   return scrape(scraper)
