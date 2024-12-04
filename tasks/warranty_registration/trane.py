@@ -40,7 +40,10 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
 
     page.get_by_role('button', name='Continue').click(timeout=5000)
 
+    time.sleep(2000)
+    page.pause()
     if page.get_by_text('Verify your Home owner/').is_visible():
+      print('verifying address')
       page.get_by_text('Verify your Home owner/').click()
       page.get_by_role('button', name='Continue').click()
 
