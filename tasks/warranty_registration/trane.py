@@ -58,7 +58,10 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
 
     page.get_by_role("button", name="Continue").click()
     page.pause()
+    print(f"BEFORE COMPLETING TRANE REGISTRATION, job_id: {payload['job_id']}")
     page.get_by_role("button", name="Complete Registration").click()
+    print(
+      f"SUCCESS COMPLETING TRANE REGISTRATION, job_id: {payload['job_id']}")
 
     with page.expect_download() as download_info:
       page.pause()

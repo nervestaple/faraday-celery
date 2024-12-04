@@ -133,6 +133,8 @@ def register_daikin_warranty(payload, systems) -> tuple[Union[str, None], Union[
       # modal.get_by_role("button", name="OK").click(force=True)
       # page.locator(".cdk-overlay-backdrop").click(force=True)
       # page.locator(".cdk-overlay-backdrop").click(force=True)
+      print(
+        f"BEFORE COMPLETING DAIKIN REGISTRATION, job_id: {payload['job_id']}")
       page.locator("div").filter(has_text="Please register your").first.click()
       page.locator("div").filter(has_text="Please register your").first.click()
       page.get_by_role("button", name="OK").click(timeout=2000)
@@ -141,6 +143,8 @@ def register_daikin_warranty(payload, systems) -> tuple[Union[str, None], Union[
 
     page.pause()
     time.sleep(2)
+    print(f"AFTER COMPLETING DAIKIN REGISTRATION, job_id: {payload['job_id']}")
+
     with page.expect_download() as download_info:
       print(page.get_by_role("button", name="Download Certificate"))
       page.get_by_role("button", name="Download Certificate").click(

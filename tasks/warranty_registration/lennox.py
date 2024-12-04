@@ -354,26 +354,31 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
       except Exception as e:
         print("couldn't click terms")
 
-      page.get_by_role('button', name='Submit & Checkout').click()
+    print(
+      f"BEFORE COMPLETING LENNOX REGISTRATION, job_id: {payload['job_id']}")
 
-      page.get_by_text('Submit & Checkout Please').click()
+    page.get_by_role('button', name='Submit & Checkout').click()
 
-      page.get_by_label('Submit & Checkout Please').get_by_role(
+    page.get_by_text('Submit & Checkout Please').click()
+
+    page.get_by_label('Submit & Checkout Please').get_by_role(
         "button", name="Submit & Checkout").click(force=True)
-      time.sleep(5)
+    time.sleep(5)
 
-      # Extract registration number and session token from session storage
-      reg_num = page.evaluate("sessionStorage.getItem('sessionPath')")
-      reg_num = json.loads(reg_num)['regNumber']
-      session_token = page.evaluate(
-          "sessionStorage.getItem('sessionTokenVar')")
+    print(f"AFTER COMPLETING LENNOX REGISTRATION, job_id: {payload['job_id']}")
 
-      # Construct the PDF download URL
-      api_path_env = 'https://api.warrantyyourway.com'
-      pdf_path = f"{api_path_env}/web/registration-service/v1/download-certificate?registrationNumber={reg_num}&sessionToken={session_token}"
+    # Extract registration number and session token from session storage
+    reg_num = page.evaluate("sessionStorage.getItem('sessionPath')")
+    reg_num = json.loads(reg_num)['regNumber']
+    session_token = page.evaluate(
+        "sessionStorage.getItem('sessionTokenVar')")
 
-      uploaded_pdf_path = upload_remote_warranty_pdf_to_s3(pdf_path, 'lennox')
-      return uploaded_pdf_path, None
+    # Construct the PDF download URL
+    api_path_env = 'https://api.warrantyyourway.com'
+    pdf_path = f"{api_path_env}/web/registration-service/v1/download-certificate?registrationNumber={reg_num}&sessionToken={session_token}"
+
+    uploaded_pdf_path = upload_remote_warranty_pdf_to_s3(pdf_path, 'lennox')
+    return uploaded_pdf_path, None
 
     # ---------------------
 
