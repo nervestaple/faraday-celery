@@ -8,8 +8,8 @@ services:
     startCommand: "playwright install chromium && celery --app tasks worker --loglevel info"
     autoDeploy: true
     scaling: # Autoscaling configuration
-      minInstances: 1
-      maxInstances: 5
+      minInstances: 2
+      maxInstances: 8
       targetMemoryPercent: 60 # Optional if targetCPUPercent is set
       targetCPUPercent: 60 # Optional if targetMemory is set
     envVars:
@@ -92,8 +92,8 @@ services:
     startCommand: "playwright install chromium && gunicorn --timeout=300 --workers=$((2 * $(nproc) + 1)) app:app"
     autoDeploy: true
     scaling: # Autoscaling configuration
-      minInstances: 1
-      maxInstances: 5
+      minInstances: 2
+      maxInstances: 8
       targetMemoryPercent: 60 # Optional if targetCPUPercent is set
       targetCPUPercent: 60 # Optional if targetMemory is set
     envVars:
@@ -154,7 +154,7 @@ services:
   - type: redis
     name: celery-redis
     region: ohio
-    plan: starter
+    plan: standard
     maxmemoryPolicy: noeviction # recommended policy for queues
     ipAllowList:
       - source: 35.90.103.132/30
