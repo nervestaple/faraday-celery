@@ -89,7 +89,7 @@ services:
     runtime: python
     plan: pro
     buildCommand: "pip install -r requirements.txt && chmod +x playwright_setup.sh && ./playwright_setup.sh"
-    startCommand: "playwright install chromium && gunicorn --timeout=300 --workers=3 app:app"
+    startCommand: "playwright install chromium && gunicorn --timeout=300 --workers=$(($(nproc) + 1)) app:app"
     autoDeploy: true
     scaling: # Autoscaling configuration
       minInstances: 1
