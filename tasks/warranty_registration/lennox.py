@@ -9,9 +9,14 @@ from celery_app import celery_app
 from s3 import upload_remote_warranty_pdf_to_s3
 from scrape import scrape
 
+type_ids = {
+  'Heat Strip': 115
+}
+
 
 def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[str, None]]:
-  print(payload)
+  log_context = {'job_id': payload['job_id'], 'manufacturer_name': 'trane'}
+  print('starting lennox warranty registration', log_context)
 
   def scraper(page: Page) -> tuple[Union[str, None], Union[str, None]]:
     page.goto('https://www.warrantyyourway.com/')
@@ -174,6 +179,7 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
           # check to see if non serialized item
           print('checking to see if non serialized item')
           try:
+            page.pause()
             page.locator('#nonSerialInputForm').click(timeout=2000)
             if equipment_item.get('warranty_model') != None and equipment_item.get('warranty_model') != None:
               warranty_model = equipment_item.get('warranty_model')
@@ -188,9 +194,13 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
               page.get_by_placeholder('Enter Model').fill(f"{warranty_model}")
               page.locator('#addNonSerialAddButton').click()
             # Heat Strips
-            elif equipment_item.get('type_id') == 115:
+            elif equipment_item.get('type_id') == type_ids['Heat Strip']:
+              page.pause()
+
               warranty_model = None
               for parent_equipment_item in system_equipment:
+                print('checking parent equipment item',
+                      log_context, parent_equipment_item)
                 if parent_equipment_item.get('warranty_model') != None and parent_equipment_item.get('warranty_model') != None:
                   warranty_model = parent_equipment_item.get('warranty_model')
                   optionToSelect = page.locator(
@@ -210,6 +220,7 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
               if warranty_model:
                 print('found heat strip model')
               else:
+                page.pause()
                 print(f"no warranty model for: {equipment_item.get('model')}")
                 error = f"no warranty model for: {equipment_item.get('model')}"
                 return None, error
@@ -376,9 +387,10 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
     # Construct the PDF download URL
     api_path_env = 'https://api.warrantyyourway.com'
     pdf_path = f"{api_path_env}/web/registration-service/v1/download-certificate?registrationNumber={reg_num}&sessionToken={session_token}"
+    print('lennox registration PDF path', pdf_path, log_context)
 
     uploaded_pdf_path = upload_remote_warranty_pdf_to_s3(
-      pdf_path, {'job_id': payload['job_id'], 'manufacturer_id': 'lennox'})
+      pdf_path, {'job_id': payload['job_id'], 'manufacturer_name': 'lennox'})
     return uploaded_pdf_path, None
 
     # ---------------------
