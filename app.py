@@ -17,6 +17,16 @@ app = Flask(__name__)
 app.secret_key = os.getenv('FLASK_SECRET_KEY')
 
 
+@app.after_request
+def after_request(response):
+  if response.status_code == 499:
+    try:
+      print('CLIENT CLOSED: 499, printing request.json', request.json)
+    except Exception as e:
+      pass
+  return response
+
+
 @app.route('/hello', methods=['GET'])
 def index():
   return 'Hello, Faraday!'
