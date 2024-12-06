@@ -1,12 +1,11 @@
 import json
 import time
-from pathlib import Path
 from typing import Union
-import urllib.parse
 from playwright.sync_api import Page
+import requests
+import base64
 
-from celery_app import celery_app
-from s3 import upload_remote_warranty_pdf_to_s3
+from s3 import upload_warranty_pdf_to_s3
 from scrape import scrape
 
 type_ids = {
@@ -329,9 +328,10 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
 
       select_all_warranties = False
       while select_all_warranties == False:
+        page.pause()
         try:
           page.get_by_text('$000.00').click(timeout=2000)
-          page.get_by_role('button', name='Select').click()
+          page.get_by_role('button', name='Select').click(timeout=2000)
         except Exception as e:
           try:
             page.get_by_role('button', name='Select').click(timeout=2000)
@@ -379,18 +379,25 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
     print(f"AFTER COMPLETING LENNOX REGISTRATION, job_id: {payload['job_id']}")
 
     # Extract registration number and session token from session storage
-    reg_num = page.evaluate("sessionStorage.getItem('sessionPath')")
-    reg_num = json.loads(reg_num)['regNumber']
-    session_token = page.evaluate(
-        "sessionStorage.getItem('sessionTokenVar')")
+    session_obj_str = page.evaluate("sessionStorage.getItem('sessionPath')")
+    session_obj = json.loads(session_obj_str)
 
-    # Construct the PDF download URL
+    reg_num = session_obj['regNumber']
+    session_token = session_obj['wywSessionToken']
+
+    page.pause()
+
     api_path_env = 'https://api.warrantyyourway.com'
     pdf_path = f"{api_path_env}/web/registration-service/v1/download-certificate?registrationNumber={reg_num}&sessionToken={session_token}"
     print('lennox registration PDF path', pdf_path, log_context)
 
-    uploaded_pdf_path = upload_remote_warranty_pdf_to_s3(
-      pdf_path, {'job_id': payload['job_id'], 'manufacturer_name': 'lennox'})
+    file_response = requests.get(pdf_path)
+    file_response_json = file_response.json()
+    file_base64_str = file_response_json['bytes']
+    file_data = base64.decodebytes(bytes(file_base64_str, 'utf-8'))
+
+    uploaded_pdf_path = upload_warranty_pdf_to_s3(
+      file_data, {'job_id': payload['job_id'], 'manufacturer_name': 'lennox'})
     return uploaded_pdf_path, None
 
     # ---------------------
