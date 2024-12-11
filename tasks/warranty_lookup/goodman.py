@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from tempfile import NamedTemporaryFile
 
 from celery_app import celery_app
+from config import IS_DEV
 
 load_dotenv()
 
@@ -24,9 +25,8 @@ def getGoodmanWarranty(serial_number, instant, equipment_scan_id, equipment_id, 
   def run(playwright: Playwright) -> None:
     text = None
     download = None
-    is_dev = os.getenv('ENVIRONMENT') == 'development'
     browser = playwright.chromium.launch(
-        headless=(not is_dev), slow_mo=50 if is_dev else 0)
+        headless=(not IS_DEV), slow_mo=50 if IS_DEV else 0)
     context = browser.new_context()
     page = context.new_page()
     page.goto(

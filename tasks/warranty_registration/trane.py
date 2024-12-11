@@ -2,6 +2,7 @@ import time
 from typing import Union
 from playwright.sync_api import Page
 
+from config import IS_DEV
 from scrape import scrape
 from s3 import upload_remote_warranty_pdf_to_s3
 
@@ -19,7 +20,6 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
       'https://warrantyregistration.tranetechnologies.com/wrApp/index.html#/trane/welcome')
 
     print('Trane warranty registration page loaded', log_context)
-    page.pause()
 
     if address_type == 'Residential':
       page.get_by_role('radio').first.check()
@@ -46,7 +46,6 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
     print('Trane warranty registration page filled', log_context)
 
     time.sleep(2)
-    page.pause()
     if page.get_by_text('Verify your Home owner/').is_visible():
       print('verifying address', log_context)
       page.get_by_text('Verify your Home owner/').click()
@@ -59,10 +58,12 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
     for index, system_equipment in enumerate(systems):
       system_number = index + 1
       if system_number > 1:
-        add_system()
+        add_system(page, system_number)
 
       for equipment_item in system_equipment:
-        add_equipment_item(page, equipment_item)
+        add_equipment_error = add_equipment_item(page, equipment_item)
+        if add_equipment_error:
+          return None, add_equipment_error
 
     page.get_by_role("button", name="Continue").click()
     page.pause()
@@ -70,6 +71,15 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
     page.get_by_role("button", name="Complete Registration").click()
     print(
       "SUCCESS COMPLETING TRANE REGISTRATION", log_context)
+
+    if IS_DEV:
+      with page.expect_popup() as popup_info:
+        page.get_by_role('button', name='View Warranty Certificate').click()
+        pdf_url = popup_info.value.url
+        uploaded_pdf_url = upload_remote_warranty_pdf_to_s3(
+          pdf_url, {'job_id': payload['job_id'], 'manufacturer_name': 'trane'})
+        return uploaded_pdf_url, None
+      return None, 'Popup not found'
 
     with page.expect_download() as download_info:
       page.pause()
@@ -170,21 +180,36 @@ def add_system(page, system_number):
   page.locator(f"#systemRow-{system_number - 1}").click()
 
 
-def add_equipment_item(page, equipment_item):
+def add_equipment_item(page: Page, equipment_item):
   serial_number = equipment_item.get('serial_number')
 
   page.get_by_placeholder('Enter your serial number').click()
   page.get_by_placeholder('Enter your serial number').fill(serial_number)
   page.get_by_role("button", name="Add").click()
 
-  is_already_registered = page.get_by_text(
-    'This unit has already been registered').is_visible()
-  is_already_associated = page.get_by_text(
-    'is associated to another active registration.').is_visible()
-  if is_already_registered or is_already_associated:
-    error = f"Serial number previously registered: {serial_number}"
-    print(f"Serial number previously registered: {serial_number}")
-    return error
+  page.pause()
+  error_message = page.locator('.overlay-content.popup10')
+  if error_message.is_visible():
+    is_already_registered = error_message.get_by_text(
+      'This unit has already been registered').is_visible()
+    if is_already_registered:
+      error = f"Serial number previously registered: {serial_number}"
+      print(error)
+      return None, error
+
+    is_already_associated = error_message.get_by_text(
+      'is associated to another active registration').is_visible()
+    if is_already_associated:
+      error = f"Serial number previously associated: {serial_number}"
+      print(error)
+      return None, error
+
+    is_serial_not_found = error_message.get_by_text(
+      "(Serial Number Details not found)").first.is_visible()
+    if is_serial_not_found:
+      error = f"Serial number not found in database: {serial_number}"
+      print(error)
+      return None, error
 
   page.get_by_text('Install Date (MM/DD/YYYY):').first.click()
   page.get_by_role(

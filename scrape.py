@@ -1,11 +1,12 @@
 import os
 from playwright.sync_api import sync_playwright
 
+from config import IS_DEV
+
 
 def create(playwright):
-  is_dev = os.getenv('ENVIRONMENT') == 'development'
   browser = playwright.chromium.launch(
-    headless=(not is_dev), slow_mo=50 if is_dev else 0)
+    headless=(not IS_DEV), slow_mo=50 if IS_DEV else 0)
   context = browser.new_context()
   page = context.new_page()
   return page, context, browser

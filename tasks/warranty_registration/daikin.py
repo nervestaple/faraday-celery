@@ -33,7 +33,7 @@ def register_daikin_warranty(payload, systems) -> tuple[Union[str, None], Union[
 
         try:
           page.get_by_role(
-            "cell", name=f"{equipment.get('serial_number')}").click(timeout=5000)
+            "cell", name=f"{equipment.get('serial_number')}").click(timeout=10000)
           print(page.get_by_role("cell", name=f"equipment.get('serial_number')"))
         except Exception as e:
           print(
@@ -106,6 +106,9 @@ def register_daikin_warranty(payload, systems) -> tuple[Union[str, None], Union[
     page.get_by_role(
       "textbox", name="Dealer/Builder Phone*").fill(payload.get('installer_phone'))
 
+    page.pause()
+    print(
+      f"BEFORE COMPLETING DAIKIN REGISTRATION, job_id: {payload['job_id']}")
     page.get_by_role("button", name="Register").click()
     try:
       page.get_by_text("Please confirm the name/").click(timeout=2000)
@@ -133,20 +136,16 @@ def register_daikin_warranty(payload, systems) -> tuple[Union[str, None], Union[
       # modal.get_by_role("button", name="OK").click(force=True)
       # page.locator(".cdk-overlay-backdrop").click(force=True)
       # page.locator(".cdk-overlay-backdrop").click(force=True)
-      print(
-        f"BEFORE COMPLETING DAIKIN REGISTRATION, job_id: {payload['job_id']}")
       page.locator("div").filter(has_text="Please register your").first.click()
       page.locator("div").filter(has_text="Please register your").first.click()
       page.get_by_role("button", name="OK").click(timeout=2000)
     except Exception as e:
       print("something went wrong")
 
-    page.pause()
     time.sleep(2)
     print(f"AFTER COMPLETING DAIKIN REGISTRATION, job_id: {payload['job_id']}")
-
+    page.pause()
     with page.expect_download() as download_info:
-      print(page.get_by_role("button", name="Download Certificate"))
       page.get_by_role("button", name="Download Certificate").click(
         force=True, timeout=2000)
 

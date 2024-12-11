@@ -1,7 +1,9 @@
 from collections import defaultdict
+from datetime import timedelta
 from dotenv import load_dotenv
 import requests
 import time
+from dateutil.parser import parse as dateparse
 
 from celery_app import celery_app
 from manufacturers import manufacturers, parent_manufacturers, manufacturer_name_by_id
@@ -88,8 +90,16 @@ def register_warranty_for_manufacturer(manufacturer_id, payload, systems):
 
 def filter_equipment_by_install_date(payload):
   install_date = payload['install_date']
-  filtered_equipment = [equipment for equipment in payload['equipment']
-                        if equipment['installed_on'] == install_date]
+  filtered_equipment = []
+  for equipment in payload['equipment']:
+    equipment_install_date = dateparse(equipment['installed_on'])
+    customer_install_date = dateparse(install_date)
+    customer_install_date_plus_one_year = customer_install_date + \
+        timedelta(days=365)
+
+    if customer_install_date <= equipment_install_date <= customer_install_date_plus_one_year:
+      filtered_equipment.append(equipment)
+
   return filtered_equipment
 
 

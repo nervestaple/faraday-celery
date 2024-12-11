@@ -17,7 +17,24 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
   log_context = {'job_id': payload['job_id'], 'manufacturer_name': 'trane'}
   print('starting lennox warranty registration', log_context)
 
+  address = payload.get('address')
+  address_street = address.get('street')
+  address_unit = address.get('unit')
+  address_city = address.get('city')
+  address_state = address.get('state')
+  address_zip = address.get('zip')
+
+  install_date = payload.get('install_date')
+  owner_phone = payload.get('owner_phone')
+  installer_phone = payload.get('installer_phone')
+  owner_email = payload.get('owner_email')
+  installer_email = payload.get('installer_email')
+
   def scraper(page: Page) -> tuple[Union[str, None], Union[str, None]]:
+    if payload.get('lennox_company_code') == None:
+      error = 'No Lennox company code available'
+      print(error)
+      return None, error
     page.goto('https://www.warrantyyourway.com/')
     page.get_by_role('button', name='Dealer').click()
     page.get_by_label('Customer Number').click()
@@ -42,51 +59,49 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
 
     page.get_by_label('Please Enter Your Full').click()
     time.sleep(2)
-    if payload.get('address').get('unit') != None and payload.get('address').get('unit') != None and payload.get('address').get('unit'):
-      address_lookup = f"{payload.get('address').get('street')} {payload.get('address').get('unit')} {payload.get('address').get('city')} {payload.get('address').get('state')} {payload.get('address').get('zip')}"
+    if address_unit != None and address_unit != None and address_unit:
+      address_lookup = f"{address_street} {address_unit} {address_city} {address_state} {address_zip}"
       # unit =
     else:
-      # address_lookup = f"{payload.get('address').get('street')}, {payload.get('address').get('city')} {payload.get('address').get('state')} {payload.get('address').get('zip')}"
-      address_lookup = f"{payload.get('address').get('street')} {payload.get('address').get('city')} {payload.get('address').get('state')} {payload.get('address').get('zip')}"
+      # address_lookup = f"{address_street}, {address_city} {address_state} {address_zip}"
+      address_lookup = f"{address_street} {address_city} {address_state} {address_zip}"
     page.get_by_label('Please Enter Your Full').click()
     page.get_by_label('Please Enter Your Full').fill(address_lookup)
 
     try:
-      time.sleep(2)
+      time.sleep(3)
       page.locator('.pac-item-query').filter(
-          has_text=f"{payload.get('address').get('street')}").first.click(timeout=1000)
+          has_text=address_street).first.click(timeout=1000)
+      page.get_by_label("State, Province").select_option(address_state)
     except Exception as e:
       print('could not verify google address')
       try:
         page.get_by_label('Street address').click(force=True)
-        page.get_by_label('Street address').fill(
-            f"{payload.get('address').get('street')}")
+        page.get_by_label('Street address').fill(address_street)
 
         page.get_by_label('City').click()
-        page.get_by_label('City').fill(f"{payload.get('address').get('city')}")
+        page.get_by_label('City').fill(address_city)
 
-        page.get_by_label('Postal, Zip').fill(
-            f"{payload.get('address').get('zip')}")
+        page.get_by_label('Postal, Zip').fill(address_zip)
         page.get_by_label('Postal, Zip').click()
-        page.get_by_label('State, Province').select_option(
-          {payload.get('address').get('state')})
+        page.get_by_label('State, Province').select_option(address_state)
       except Exception as e:
         print('could not verify address')
         error = (
-            f"could not verify google address: {payload.get('address').get('street')} {payload.get('address').get('unit')} {payload.get('address').get('city')} {payload.get('address').get('state')} {payload.get('address').get('zip')}")
+            f"could not verify google address: {address_street} {address_unit} {address_city} {address_state} {address_zip}")
 
     page.get_by_label('Phone').click()
-    page.get_by_label('Phone').fill(payload.get('owner_phone') if payload.get(
-      'owner_phone') else payload.get('installer_phone'))
+    page.get_by_label('Phone').fill(
+      owner_phone if owner_phone else installer_phone)
     page.get_by_label('Owner Email').click()
-    page.get_by_label('Owner Email').fill(payload.get('owner_email') if payload.get(
-      'owner_email') else payload.get('installer_email'))
+    page.get_by_label('Owner Email').fill(
+      owner_email if owner_email else installer_email)
 
     page.get_by_label('Dealer Email').click()
 
     # page.get_by_label('Dealer Email').press('ControlOrMeta+a')
 
-    page.get_by_label('Dealer Email').fill(payload.get('installer_email'))
+    page.get_by_label('Dealer Email').fill(installer_email)
 
     # page.get_by_label('Equipment Eligibility').locator('div').filter(has_text="Equipment Eligibility').nth(1).click()
     # page.get_by_text('Close').click()
@@ -106,17 +121,14 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
     try:
       page.get_by_text('Please provide a street').click(timeout=2000)
       page.get_by_label('Street address').click(force=True)
-      page.get_by_label('Street address').fill(
-          f"{payload.get('address').get('street')}")
+      page.get_by_label('Street address').fill(address_street)
 
       page.get_by_label('City').click()
-      page.get_by_label('City').fill(f"{payload.get('address').get('city')}")
+      page.get_by_label('City').fill(address_city)
 
-      page.get_by_label('Postal, Zip').fill(
-          f"{payload.get('address').get('zip')}")
+      page.get_by_label('Postal, Zip').fill(address_zip)
       page.get_by_label('Postal, Zip').click()
-      page.get_by_label('State, Province').select_option(
-        {payload.get('address').get('state')})
+      page.get_by_label('State, Province').select_option(address_state)
     except Exception as e:
       print('address entered')
 
@@ -137,16 +149,18 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
         page.get_by_text('Tell Us About The Equipment').click(timeout=2000)
         # time.sleep(20)
         for equipment_item in system_equipment:
+          serial = equipment_item.get('serial_number')
+          if len(serial) > 1 and serial[0].lower() == 's':
+            serial = serial[1:]
 
           page.get_by_label('Serial Number', exact=True).click(timeout=2000)
-          page.get_by_label('Serial Number', exact=True).fill(
-            equipment_item.get('serial_number'))
+          page.get_by_label('Serial Number', exact=True).fill(serial)
 
           page.get_by_placeholder('mm/dd/yyyy').click(timeout=2000)
           time.sleep(2)
 
           page.get_by_placeholder(
-            'mm/dd/yyyy').fill(payload.get('install_date'))
+            'mm/dd/yyyy').fill(install_date)
           time.sleep(2)
           page.get_by_placeholder('mm/dd/yyyy').press('Enter')
 
@@ -178,24 +192,21 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
           # check to see if non serialized item
           print('checking to see if non serialized item')
           try:
-            page.pause()
             page.locator('#nonSerialInputForm').click(timeout=2000)
             if equipment_item.get('warranty_model') != None and equipment_item.get('warranty_model') != None:
               warranty_model = equipment_item.get('warranty_model')
 
               optionToSelect = page.locator(
-                'option', has_text=f'{warranty_model}').text_content()
+                'option', has_text=warranty_model).text_content()
               print(optionToSelect)
               page.get_by_label('Product Type').select_option(optionToSelect)
 
               page.get_by_label('Brand').select_option('Lennox')
               page.get_by_placeholder('Enter Model').click()
-              page.get_by_placeholder('Enter Model').fill(f"{warranty_model}")
+              page.get_by_placeholder('Enter Model').fill(warranty_model)
               page.locator('#addNonSerialAddButton').click()
             # Heat Strips
             elif equipment_item.get('type_id') == type_ids['Heat Strip']:
-              page.pause()
-
               warranty_model = None
               for parent_equipment_item in system_equipment:
                 print('checking parent equipment item',
@@ -219,7 +230,6 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
               if warranty_model:
                 print('found heat strip model')
               else:
-                page.pause()
                 print(f"no warranty model for: {equipment_item.get('model')}")
                 error = f"no warranty model for: {equipment_item.get('model')}"
                 return None, error
@@ -283,18 +293,18 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
                 has_text=f"{equipment_item.get('serial_number')}").click(timeout=2000)
               coil_pairing.locator('select').click(timeout=2000)
 
-              # for coil in equipments:
-              #   try:
-              #
-              #     option_to_select = coil_pairing.locator('option').filter(
-              #       has_text=f"{coil.get('serial_number')}").first.text_content()
-              #     coil_pairing.locator(
-              #       'select').select_option(option_to_select)
-              #     # page.locator('option').filter(has_text=f"{coil.get('serial_number')}').first.click(timeout=5000)
-              #     break
-              #   except Exception as e:
-              #     print(
-              #       f"could not find coil pairing: {coil.get('serial_number')}")
+              for coil in system_equipment:
+                try:
+
+                  option_to_select = coil_pairing.locator('option').filter(
+                    has_text=f"{coil.get('serial_number')}").first.text_content()
+                  coil_pairing.locator(
+                    'select').select_option(option_to_select)
+                  # page.locator('option').filter(has_text=f"{coil.get('serial_number')}').first.click(timeout=5000)
+                  break
+                except Exception as e:
+                  print(
+                    f"could not find coil pairing: {coil.get('serial_number')}")
             except Exception as e:
               print(
                 f"could not find AC Unit pairing: {equipment_item.get('serial_number')}")
@@ -328,7 +338,6 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
 
       select_all_warranties = False
       while select_all_warranties == False:
-        page.pause()
         try:
           page.get_by_text('$000.00').click(timeout=2000)
           page.get_by_role('button', name='Select').click(timeout=2000)
@@ -365,6 +374,7 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
       except Exception as e:
         print("couldn't click terms")
 
+    page.pause()
     print(
       f"BEFORE COMPLETING LENNOX REGISTRATION, job_id: {payload['job_id']}")
 
