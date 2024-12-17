@@ -4,6 +4,7 @@ import requests
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse as dateparse
 from dotenv import load_dotenv
+from playwright.sync_api import Page
 
 from celery_app import celery_app
 from scrape import scrape
@@ -15,11 +16,23 @@ load_dotenv()
 
 @celery_app.task
 def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equipment_id, owner_last_name):
-  def get_warranty_object(page):
+  def get_warranty_object(page: Page):
     page.goto('https://warrantycenter.bradfordwhite.com/')
     page.locator("#check_serial_number").click()
     page.locator("#check_serial_number").fill(serial_number)
     page.locator("#check_btn").click()
+    page.wait_for_load_state('networkidle')
+
+    error_texts = page.locator('.alert.alert-danger').all_inner_texts()
+    filtered_error_texts = [text.replace('×', '').strip()
+                            for text in error_texts if text]
+    error_text = '\n'.join([text for text in filtered_error_texts if text])
+    if len(filtered_error_texts) > 0:
+      print(f'Error with serial {serial_number}:', error_text)
+      return None
+
+    page.pause()
+
     page.locator('.warranty-body').click()
     cells = page.locator('.warranty-body').locator('tr td:nth-child(3)').all()
     cell_data = [cell.text_content().strip() for cell in cells]

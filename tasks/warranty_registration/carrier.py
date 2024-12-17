@@ -60,7 +60,6 @@ def register_carrier_warranty(payload, systems) -> tuple[Union[str, None], Union
 
     serial_error_messages = page.locator(
       '.SerialErrorDisplay').filter(has_text=' ').all_inner_texts()
-    print(serial_error_messages, log_context)
 
     if any(serial_error_messages):
       errors_with_serials = [f"{all_equipment[i].get('serial_number')}: {error}"
