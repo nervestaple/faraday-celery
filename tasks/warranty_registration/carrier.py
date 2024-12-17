@@ -1,113 +1,186 @@
-from celery_app import celery_app
+import time
+
+from typing import Union
+from s3 import upload_warranty_pdf_to_s3
 from scrape import scrape
 from playwright.sync_api import Page
 
 
-def register_carrier_warranty(payload, systems):
-  print(payload)
+def register_carrier_warranty(payload, systems) -> tuple[Union[str, None], Union[str, None]]:
+  log_context = {'job_id': payload['job_id'], 'manufacturer_name': 'trane'}
 
-  def scraper(page: Page):
+  address_type = payload.get('type')
+
+  def scraper(page: Page) -> tuple[Union[str, None], Union[str, None]]:
     page.goto(
       "https://productregistration.carrier.com/public/RegistrationForm_Carrier?brand=CARRIER")
-    page.locator("#Products_0__SerialNumber").fill("2524V61940")
-    page.locator("#Products_0__SerialNumber").click()
-    page.locator("div").filter(
-      has_text="PRODUCT REGISTRATION 1 Serial").nth(1).click()
-    page.get_by_role("row", name="2524V61940 KFFEH2601C10").get_by_placeholder(
-      "MM/DD/YYYY").click()
-    page.get_by_role("row", name="2524V61940 KFFEH2601C10").get_by_placeholder(
-      "MM/DD/YYYY").click()
-    page.get_by_role("row", name="2524V61940 KFFEH2601C10").get_by_placeholder(
-      "MM/DD/YYYY").fill("09/28/2024")
-    page.locator("div").filter(
-      has_text="PRODUCT REGISTRATION 1 Serial").nth(1).click()
-    page.locator("#Products_1__SerialNumber").click()
-    page.locator("#Products_1__SerialNumber").fill("3024C62073")
-    page.locator("#Products_1__SerialNumber").click()
-    page.get_by_role("row", name="3024C62073 Refresh").get_by_placeholder(
-      "MM/DD/YYYY").click()
-    page.get_by_role("row", name="3024C62073 GA5SAN43600W").get_by_placeholder(
-      "MM/DD/YYYY").click()
-    page.get_by_role("row", name="3024C62073 GA5SAN43600W").get_by_placeholder(
-      "MM/DD/YYYY").fill("09/28/2024")
-    page.get_by_role("row", name="Refresh", exact=True).get_by_placeholder(
-      "Enter serial number").click()
-    page.get_by_role("row", name="Refresh", exact=True).get_by_placeholder(
-      "Enter serial number").fill("2624F03703")
-    page.get_by_role("row", name="Refresh", exact=True).get_by_placeholder(
-      "Enter serial number").click()
-    page.get_by_role("row", name="2624F03703 FJ4DNXB36L00").get_by_placeholder(
-      "MM/DD/YYYY").click()
-    page.get_by_role("row", name="2624F03703 FJ4DNXB36L00").get_by_placeholder(
-      "MM/DD/YYYY").fill("9/28/2024")
-    page.locator("div").filter(
-      has_text="PRODUCT REGISTRATION 1 Serial").nth(1).click()
-    page.get_by_role("img", name="Delete").click()
-    page.get_by_role(
-      "row", name="2624F03703 FJ4DNXB36L00 9/28/").get_by_placeholder("MM/DD/YYYY").dblclick()
-    page.get_by_role("link", name="28").click()
+
+    all_equipment = [
+      equipment_item for system_equipment in systems for equipment_item in system_equipment]
+    print(all_equipment)
+
+    for index, equipment_item in enumerate(all_equipment):
+      error = fill_equipment_item(page, index, equipment_item)
+      if error:
+        print(error)
+        return None, error
+
     page.get_by_label("Replacement of existing").check()
-    page.get_by_label("Replacement of existing").check()
-    page.get_by_label("Residential Single Family").check()
-    page.get_by_role("button", name="Next   ").click()
+
+    if address_type == "Commercial":
+      page.get_by_label("Commercial").check()
+    else:
+      page.get_by_label("Residential Single Family").check()
+
+    page.get_by_label("Replacement of existing equipment").check()
+
+    page.locator("button#wizard-next").click()
+    page.wait_for_load_state('networkidle')
+
+    serial_error_message = page.wait_for_selector(
+      '.SerialErrorDisplay', timeout=5000)
+    if serial_error_message.is_visible():
+      error_text = serial_error_message.inner_text()
+      all_serials_string = ','.join(
+        [equipment_item.get('serial_number') for equipment_item in all_equipment])
+      error = f"One of the serial numbers {all_serials_string} produced an error: {error_text}"
+      return None, error
+
     page.get_by_role("button", name="Next", exact=True).click()
-    page.get_by_placeholder("Enter first name").click()
-    page.get_by_placeholder("Enter first name").fill("Tige Brown")
-    page.get_by_placeholder("Enter first name").click()
-    page.get_by_placeholder("Enter first name").click()
-    page.get_by_placeholder("Enter first name").press("Shift+ArrowLeft")
-    page.get_by_placeholder("Enter first name").press("Shift+ArrowLeft")
-    page.get_by_placeholder("Enter first name").press("Shift+ArrowLeft")
-    page.get_by_placeholder("Enter first name").press("Shift+ArrowLeft")
-    page.get_by_placeholder("Enter first name").press("Shift+ArrowLeft")
-    page.get_by_placeholder("Enter first name").press("ControlOrMeta+x")
-    page.get_by_placeholder("Enter first name").fill("Tige")
-    page.get_by_placeholder("Enter last name").click()
-    page.get_by_placeholder("Enter last name").fill("Brown")
-    page.get_by_role("textbox", name="Enter address", exact=True).click()
-    page.get_by_role("textbox", name="Enter address", exact=True).fill(
-      "4045 North Indigo Drive, Harvey, LA 70058")
-    page.get_by_role("textbox", name="Enter address", exact=True).click()
-    page.locator("#ui-id-10").click()
-    page.get_by_label("Check here if you don't have").check()
-    page.get_by_label("Check here if you don't have").uncheck()
-    page.locator("#txtConsumerEmail").click()
-    page.locator("#txtConsumerEmail").click()
-    page.locator("#txtConsumerConfirmEmail").click()
-    page.locator("#txtConsumerConfirmEmail").click()
-    page.get_by_label("Check here if you don't have").check()
-    page.get_by_label("Check here if your address is").check()
-    page.get_by_role("button", name="Next   ").click()
-    page.get_by_role("textbox", name="(999) 999-").click()
-    page.get_by_role(
-      "textbox", name="(999) 999-").fill("(2258036441___) ___-____")
-    page.locator("#webcontent1").click()
-    page.get_by_role("button", name="Next   ").click()
-    page.get_by_role("textbox", name="Enter address", exact=True).click()
-    page.get_by_role("textbox", name="Enter zip code").click()
-    page.get_by_text("Step 3 of 6: Equipment").click()
-    page.get_by_role("button", name="Next   ").click()
-    page.get_by_text("Step 4 of 6: DEALER").click()
-    page.get_by_role("textbox", name="Please contact your").click()
-    page.get_by_role("textbox", name="Please contact your").click()
-    page.get_by_role("textbox", name="Please contact your").fill("Keefes")
-    page.get_by_role("button", name=" Search").click()
-    page.get_by_role("textbox", name="Please contact your").click()
-    page.get_by_role("textbox", name="Please contact your").fill("Keefe")
-    page.get_by_role("textbox", name="Please contact your").click()
-    page.get_by_role("button", name=" Search").click()
-    page.get_by_text("MFG Account # 181418-").click()
-    page.get_by_text("MFG Account # 181418-").click(click_count=5)
-    page.get_by_text("MFG Account # 181418-").dblclick()
-    page.get_by_text("MFG Account # 181418-").click()
-    page.get_by_label("Keefe's A/C & Heating Inc").check()
-    page.get_by_role("button", name="Next   ").click()
-    page.get_by_text("Step 5 of 6: Warranty Details").click()
-    page.get_by_role("button", name="Next   ").click()
-    page.get_by_text("Step 6 of 6: Review & Submit").click()
-    page.get_by_role("button", name="Submit   ").click()
-    page.get_by_role("button", name="Yes").click()
-    page.get_by_role("button", name="PRINT   ").click()
-    page.get_by_text("Z006215691190C").click()
+
+    fill_address(page, payload)
+    page.locator("button#wizard-next").click()
+
+    page.wait_for_load_state('networkidle')
+
+    try:
+      page.get_by_role("button", name="Edit").click(force=True)
+      page.wait_for_load_state('networkidle')
+    except Exception as e:
+      pass
+
+    page.locator("button#wizard-next").click()
+    page.locator("button#wizard-next").click()
+
+    fill_installer_info(page, payload)
+
+    page.locator("button#wizard-next").click()
+
+    page.get_by_label("No labor coverage desired.").check()
+    page.get_by_label(
+      "I have reviewed and agree to the  Climate Shield ESA Program Terms & Conditions.").check()
+
+    page.locator("button#wizard-next").click()
+    page.locator("button#wizard-submit").click()
+    page.get_by_role("button", name="Yes").click(force=True)
+
+    page.wait_for_load_state('networkidle')
+    pdf_bytes = page.pdf()
+
+    uploaded_pdf_path = upload_warranty_pdf_to_s3(
+      pdf_bytes, {'job_id': payload['job_id'], 'manufacturer_name': 'carrier'})
+    return uploaded_pdf_path, None
 
   scrape(scraper)
+
+
+def fill_equipment_item(page: Page, index, equipment_item):
+  serial_number = equipment_item.get('serial_number')
+  installation_date = equipment_item.get('installed_on')
+
+  serial_input = page.locator(f'#Products_{index}__SerialNumber')
+  serial_input.click()
+  serial_input.fill(serial_number)
+  serial_input.blur()
+
+  page.wait_for_load_state('networkidle')
+
+  model_input = page.locator(f'#Products_{index}__SelectedModel')
+  model_input.focus()
+  model_input.blur()
+
+  serial_error = serial_input.locator('..').locator('.SerialErrorDisplay')
+  if serial_error.is_visible():
+    serial_error_text = serial_error.inner_text()
+    error = f"Serial number error for {serial_number}: {serial_error_text}"
+    return error
+
+  install_date_input = page.locator(f'#Products_{index}__InstallationDate')
+  install_date_input.click()
+  install_date_input.fill(installation_date)
+  install_date_input.blur()
+
+  page.wait_for_load_state('networkidle')
+
+
+def fill_address(page: Page, payload):
+  first_name = payload.get('first_name')
+  last_name = payload.get('last_name')
+
+  address = payload.get('address')
+  address_street = address.get('street')
+  address_unit = address.get('unit')
+  address_city = address.get('city')
+  address_state = address.get('state')
+  address_zip = address.get('zip')
+
+  owner_email = payload.get('owner_email')
+  owner_phone = payload.get('owner_phone')
+  installer_email = payload.get('installer_email')
+
+  owner_email = owner_email if owner_email else installer_email
+
+  page.get_by_placeholder("Enter first name").click()
+  page.get_by_placeholder("Enter first name").fill(first_name)
+
+  page.get_by_placeholder("Enter last name").click()
+  page.get_by_placeholder("Enter last name").fill(last_name)
+
+  street_input = page.get_by_role("textbox", name="Enter address", exact=True)
+  street_input.click()
+  street_input.fill(address_street)
+
+  unit_input = page.get_by_role("textbox", name="Enter address line 2")
+  unit_input.click()
+  unit_input.fill(address_unit)
+
+  city_input = page.get_by_role("textbox", name="Enter city")
+  city_input.click()
+  city_input.fill(address_city)
+
+  zip_input = page.get_by_role("textbox", name="Enter zip code")
+  zip_input.click()
+  zip_input.fill(address_zip)
+
+  page.locator("#ddlConsumerState").select_option(address_state)
+  page.locator("#ddlConsumerState").blur()
+
+  page.locator('#txtConsumerPhone1').click()
+  page.locator('#txtConsumerPhone1').fill(owner_phone)
+
+  page.locator("#txtConsumerEmail").click()
+  page.locator("#txtConsumerEmail").fill(owner_email)
+
+  page.locator("#txtConsumerConfirmEmail").click()
+  page.locator("#txtConsumerConfirmEmail").fill(owner_email)
+
+  page.locator('#chkConsumerMarketingOptIn').uncheck()
+
+  page.locator('#chkCheckCustomerOwnerSame').check()
+
+
+def fill_installer_info(page: Page, payload):
+  installer_name = payload.get('installer_name')
+  installer_email = payload.get('installer_email')
+  installer_phone = payload.get('installer_phone')
+
+  page.locator('#txtHomeOwnerInput').click()
+  page.locator('#txtHomeOwnerInput').fill(
+    'abcdefgh123456')  # random to trigger manual form
+  page.locator('button#btnFindDealer').click()
+
+  page.wait_for_load_state('networkidle')
+
+  page.get_by_role("textbox", name="Enter dealer name").fill(installer_name)
+  page.get_by_role("textbox", name="someone@domain.com").fill(installer_email)
+  page.get_by_role("textbox", name="(999) 999-9999").fill(installer_phone)

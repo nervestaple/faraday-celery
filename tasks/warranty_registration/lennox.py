@@ -230,8 +230,8 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
               if warranty_model:
                 print('found heat strip model')
               else:
-                print(f"no warranty model for: {equipment_item.get('model')}")
                 error = f"no warranty model for: {equipment_item.get('model')}"
+                print(error)
                 return None, error
             # Dampers
             elif equipment_item.get('type_id') == 50 or equipment_item.get('type_id') == 181 or equipment_item.get('type_id') == 8:
@@ -246,8 +246,8 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
                 f"{equipment_item.get('model')}")
               page.locator('#addNonSerialAddButton').click()
             else:
-              print(f"no warranty model for: {equipment_item.get('model')}")
               error = f"no warranty model for: {equipment_item.get('model')}"
+              print(error)
               return None, error
           except Exception as e:
             print(f"something bad happened: {e}")
@@ -336,21 +336,21 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
       except Exception as e:
         print(f"something bad happened: {e}")
 
-      select_all_warranties = False
-      while select_all_warranties == False:
+      # select all warranties
+      while True:
         try:
-          page.get_by_text('$000.00').click(timeout=2000)
-          page.get_by_role('button', name='Select').click(timeout=2000)
+          page.get_by_text('$000.00').click(timeout=5000)
+          page.get_by_role('button', name='Select').click(timeout=5000)
         except Exception as e:
           try:
-            page.get_by_role('button', name='Select').click(timeout=2000)
+            page.get_by_role('button', name='Select').click(timeout=5000)
 
           except Exception as e:
             print(f"something bad happened: {e}")
-            print(f"something bad happened: {e}")
             break
-      all_equipment_reviewed = False
-      while all_equipment_reviewed == False:
+
+      # all equipment reviewed
+      while True:
         try:
           page.get_by_role('button', name='Review Next').click(timeout=2000)
         except Exception as e:

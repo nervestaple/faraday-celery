@@ -15,7 +15,7 @@ from tasks.warranty_registration.trane import register_trane_warranty
 load_dotenv()
 
 warranty_registration_methods = {
-  # manufacturers['Carrier']: register_carrier_warranty,
+  manufacturers['Carrier']: register_carrier_warranty,
   manufacturers['Lennox']: register_lennox_warranty,
   manufacturers['Trane']: register_trane_warranty,
   manufacturers['Daikin']: register_daikin_warranty,

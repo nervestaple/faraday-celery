@@ -187,7 +187,8 @@ def add_equipment_item(page: Page, equipment_item):
   page.get_by_placeholder('Enter your serial number').fill(serial_number)
   page.get_by_role("button", name="Add").click()
 
-  page.pause()
+  time.sleep(5)
+
   error_message = page.locator('.overlay-content.popup10')
   if error_message.is_visible():
     is_already_registered = error_message.get_by_text(
