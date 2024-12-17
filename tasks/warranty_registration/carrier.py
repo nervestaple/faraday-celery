@@ -7,22 +7,39 @@ from playwright.sync_api import Page
 
 
 def register_carrier_warranty(payload, systems) -> tuple[Union[str, None], Union[str, None]]:
-  log_context = {'job_id': payload['job_id'], 'manufacturer_name': 'trane'}
+  log_context = {'job_id': payload['job_id'], 'manufacturer_name': 'carrier'}
+
+  carrier_dealer_code = payload.get('carrier_dealer_code')
+  if not carrier_dealer_code:
+    error = 'Carrier dealer code is required'
+    print(error, log_context)
+    return None, error
 
   address_type = payload.get('type')
 
   def scraper(page: Page) -> tuple[Union[str, None], Union[str, None]]:
     page.goto(
-      "https://productregistration.carrier.com/public/RegistrationForm_Carrier?brand=CARRIER")
+      "https://productregistration.carrier.com/Dealer/RegistrationForm?brand=CARRIER")
+
+    page.locator('#txtDealerInput').click()
+    page.locator('#txtDealerInput').fill(carrier_dealer_code)
+    page.locator('#btnFindDealer').click()
+
+    page.wait_for_load_state('networkidle')
+
+    page.locator('#SelectDealer').click()
+    page.locator('#wizard-next').click()
+
+    page.wait_for_load_state('networkidle')
+    page.wait_for_selector('.dvSpinner', state='hidden')
 
     all_equipment = [
       equipment_item for system_equipment in systems for equipment_item in system_equipment]
-    print(all_equipment)
 
     for index, equipment_item in enumerate(all_equipment):
       error = fill_equipment_item(page, index, equipment_item)
       if error:
-        print(error)
+        print(error, log_context)
         return None, error
 
     page.get_by_label("Replacement of existing").check()
@@ -34,54 +51,61 @@ def register_carrier_warranty(payload, systems) -> tuple[Union[str, None], Union
 
     page.get_by_label("Replacement of existing equipment").check()
 
-    page.locator("button#wizard-next").click()
-    page.wait_for_load_state('networkidle')
+    fill_address(page, payload)
 
-    serial_error_message = page.wait_for_selector(
-      '.SerialErrorDisplay', timeout=5000)
-    if serial_error_message.is_visible():
-      error_text = serial_error_message.inner_text()
-      all_serials_string = ','.join(
-        [equipment_item.get('serial_number') for equipment_item in all_equipment])
-      error = f"One of the serial numbers {all_serials_string} produced an error: {error_text}"
+    page.get_by_role("button", name="Continue").click()
+
+    page.wait_for_load_state('networkidle')
+    page.wait_for_selector('.dvSpinner', state='hidden')
+
+    serial_error_messages = page.locator(
+      '.SerialErrorDisplay').filter(has_text=' ').all_inner_texts()
+    print(serial_error_messages, log_context)
+
+    if any(serial_error_messages):
+      errors_with_serials = [f"{all_equipment[i].get('serial_number')}: {error}"
+                             for i, error in enumerate(serial_error_messages) if error]
+      joined = ', '.join(errors_with_serials)
+      error = f"Serial number errors -- {joined}"
+      print(error, log_context)
       return None, error
 
-    page.get_by_role("button", name="Next", exact=True).click()
-
-    fill_address(page, payload)
-    page.locator("button#wizard-next").click()
-
-    page.wait_for_load_state('networkidle')
-
     try:
-      page.get_by_role("button", name="Edit").click(force=True)
+      page.get_by_role("button", name="OK").click(force=True)
+
       page.wait_for_load_state('networkidle')
+      page.wait_for_selector('.dvSpinner', state='hidden')
+
+      page.get_by_role("button", name="Continue").click()
+
+      page.wait_for_load_state('networkidle')
+      page.wait_for_selector('.dvSpinner', state='hidden')
     except Exception as e:
       pass
 
-    page.locator("button#wizard-next").click()
-    page.locator("button#wizard-next").click()
-
-    fill_installer_info(page, payload)
-
-    page.locator("button#wizard-next").click()
-
     page.get_by_label("No labor coverage desired.").check()
+
     page.get_by_label(
-      "I have reviewed and agree to the  Climate Shield ESA Program Terms & Conditions.").check()
+      "I have reviewed and agree to the  Climate Shield ESA Program Enrollment Terms & Conditions.").check()
 
-    page.locator("button#wizard-next").click()
-    page.locator("button#wizard-submit").click()
+    page.pause()
+
+    page.get_by_role("button", name="SUBMIT").click()
     page.get_by_role("button", name="Yes").click(force=True)
-
     page.wait_for_load_state('networkidle')
+    page.wait_for_selector('.dvSpinner', state='hidden')
+
+    page.pause()
+
     pdf_bytes = page.pdf()
 
     uploaded_pdf_path = upload_warranty_pdf_to_s3(
       pdf_bytes, {'job_id': payload['job_id'], 'manufacturer_name': 'carrier'})
+
+    print('uploaded_pdf_path:', uploaded_pdf_path, log_context)
     return uploaded_pdf_path, None
 
-  scrape(scraper)
+  return scrape(scraper)
 
 
 def fill_equipment_item(page: Page, index, equipment_item):
@@ -140,9 +164,10 @@ def fill_address(page: Page, payload):
   street_input.click()
   street_input.fill(address_street)
 
-  unit_input = page.get_by_role("textbox", name="Enter address line 2")
-  unit_input.click()
-  unit_input.fill(address_unit)
+  if address_unit:
+    unit_input = page.get_by_role("textbox", name="Enter address line 2")
+    unit_input.click()
+    unit_input.fill(address_unit)
 
   city_input = page.get_by_role("textbox", name="Enter city")
   city_input.click()
@@ -164,23 +189,4 @@ def fill_address(page: Page, payload):
   page.locator("#txtConsumerConfirmEmail").click()
   page.locator("#txtConsumerConfirmEmail").fill(owner_email)
 
-  page.locator('#chkConsumerMarketingOptIn').uncheck()
-
-  page.locator('#chkCheckCustomerOwnerSame').check()
-
-
-def fill_installer_info(page: Page, payload):
-  installer_name = payload.get('installer_name')
-  installer_email = payload.get('installer_email')
-  installer_phone = payload.get('installer_phone')
-
-  page.locator('#txtHomeOwnerInput').click()
-  page.locator('#txtHomeOwnerInput').fill(
-    'abcdefgh123456')  # random to trigger manual form
-  page.locator('button#btnFindDealer').click()
-
-  page.wait_for_load_state('networkidle')
-
-  page.get_by_role("textbox", name="Enter dealer name").fill(installer_name)
-  page.get_by_role("textbox", name="someone@domain.com").fill(installer_email)
-  page.get_by_role("textbox", name="(999) 999-9999").fill(installer_phone)
+  page.locator('#chkEquipOwnerAcknowledge').check()
