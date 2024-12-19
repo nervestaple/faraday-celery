@@ -21,7 +21,6 @@ def register_daikin_warranty(payload, systems) -> tuple[Union[str, None], Union[
         page.get_by_role("textbox", name="Serial number").fill(serial_number)
 
         page.pause()
-        page.get_by_text("1Product Info2Customer").click()
         page.wait_for_load_state('networkidle')
 
         try:
@@ -155,7 +154,7 @@ def register_daikin_warranty(payload, systems) -> tuple[Union[str, None], Union[
 
       local_path = download_info.value.path()
       uploaded_pdf_path = upload_local_warranty_pdf_to_s3(
-        local_path, {'job_id': payload['job_id'], 'manufacturer_name': 'daikin'})
+        local_path, [payload['job_id'], 'daikin'])
       return uploaded_pdf_path, None
 
   return scrape(scraper)

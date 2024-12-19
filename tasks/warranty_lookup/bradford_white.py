@@ -9,6 +9,7 @@ from playwright.sync_api import Page
 
 from celery_app import celery_app
 from scrape import scrape
+import base64
 
 load_dotenv()
 
@@ -41,9 +42,10 @@ def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equip
     if len(cell_data) < 8:
       return None
 
-    serial, model, heater_type, mfg_date_str, original_mfg_date_str, warranty_length, warranty_expire_date_str, registration_status, registration_date_str, *rest = cell_data
+    serial, model, heater_type, mfg_date_str, original_mfg_date_str, warranty_length, warranty_expire_date_str, registration_status, *rest = cell_data
+    registration_date_str = None
     if len(rest) > 0:
-      print('Unexpected extra data:', rest)
+      registration_date_str = rest[0]
 
     mfg_date = dateparse(mfg_date_str)
 
@@ -73,7 +75,10 @@ def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equip
     except Exception as e:
       print('Error parsing registration date:', e)
 
-    return {
+    pdf_bytes = page.pdf()
+    pdf_base64 = base64.b64encode(pdf_bytes).decode('utf-8')
+
+    return pdf_base64, {
       "certificate": None,
       "install_date": install_date,
       "is_registered": registration_status == 'Registered',
@@ -91,19 +96,24 @@ def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equip
       ]
     }
 
-  warranty_object = scrape(get_warranty_object)
+  pdf_base64, warranty_object = scrape(get_warranty_object)
 
   if int(instant) == 1:
-    return {"warranty_object": warranty_object, "filedata": None}
+    return {"warranty_object": warranty_object, "filedata": pdf_base64}
 
   print({
-      "warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": None})
-  if equipment_scan_id and equipment_scan_id is not (None):
-    r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={
-                      "warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id, "filedata": None}, timeout=30)
-    print(r)
+      "warranty_object": json.dumps(warranty_object), "equipment_scan_id": equipment_scan_id})
 
-  if equipment_id and equipment_id is not (None):
-    r = requests.post('https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data={
-                      "warranty_object": json.dumps(warranty_object), "equipment_id": equipment_id, "filedata": None}, timeout=30)
-    print(r)
+  body = {
+    "warranty_object": json.dumps(warranty_object),
+    "filedata": pdf_base64
+  }
+
+  if equipment_scan_id:
+    body["equipment_scan_id"] = equipment_scan_id
+  elif equipment_id:
+    body["equipment_id"] = equipment_id
+
+  r = requests.post(
+    'https://x6fl-8ass-7cr7.n7.xano.io/api:CHGuzb789/update_warranty_data', data=body, timeout=30)
+  print(r)

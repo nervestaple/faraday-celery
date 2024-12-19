@@ -62,7 +62,7 @@ def get_rheem_warranty(serial_number_raw, instant, equipment_scan_id, equipment_
   certificate = None
   if response['CertificateURL']:
     certificate = upload_remote_warranty_pdf_to_s3(
-      response['CertificateURL'], {'manufacturer_name': 'rheem'})
+      response['CertificateURL'], ['rheem'])
 
   return {
     "model_number": response['ModelNumber'],

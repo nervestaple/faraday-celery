@@ -29,11 +29,9 @@ def upload_local_warranty_pdf_to_s3(file_path, metadata):
     return upload_warranty_pdf_to_s3(file.read(), metadata)
 
 
-def upload_warranty_pdf_to_s3(file_data, metadata: dict):
-  job_id = metadata['job_id'] if 'job_id' in metadata else ''
-  manufacturer_name = metadata['manufacturer_name'] if 'manufacturer_name' in metadata else ''
-
-  key = f'warranty-{job_id}-{manufacturer_name.lower()}-{uuid7str()}.pdf'
+def upload_warranty_pdf_to_s3(file_data, identifiers: list):
+  identifier_str = '-'.join(identifiers)
+  key = f'warranty-{identifier_str}-{uuid7str()}.pdf'
 
   try:
     s3.put_object(

@@ -99,7 +99,7 @@ def register_carrier_warranty(payload, systems) -> tuple[Union[str, None], Union
     pdf_bytes = page.pdf()
 
     uploaded_pdf_path = upload_warranty_pdf_to_s3(
-      pdf_bytes, {'job_id': payload['job_id'], 'manufacturer_name': 'carrier'})
+      pdf_bytes, [payload['job_id'], 'carrier'])
 
     print('uploaded_pdf_path:', uploaded_pdf_path, log_context)
     return uploaded_pdf_path, None

@@ -77,7 +77,7 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
         page.get_by_role('button', name='View Warranty Certificate').click()
         pdf_url = popup_info.value.url
         uploaded_pdf_url = upload_remote_warranty_pdf_to_s3(
-          pdf_url, {'job_id': payload['job_id'], 'manufacturer_name': 'trane'})
+          pdf_url, [payload['job_id'], 'trane'])
         return uploaded_pdf_url, None
       return None, 'Popup not found'
 
@@ -89,7 +89,7 @@ def register_trane_warranty(payload, systems) -> tuple[Union[str, None], Union[s
       print(download_info.value.url)
       pdf_url = download_info.value.url
       uploaded_pdf_url = upload_remote_warranty_pdf_to_s3(
-        pdf_url, {'job_id': payload['job_id'], 'manufacturer_name': 'trane'})
+        pdf_url, [payload['job_id'], 'trane'])
       return uploaded_pdf_url, None
 
   return scrape(scraper)

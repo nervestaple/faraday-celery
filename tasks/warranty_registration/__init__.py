@@ -11,6 +11,7 @@ from tasks.warranty_registration.carrier import register_carrier_warranty
 from tasks.warranty_registration.daikin import register_daikin_warranty
 from tasks.warranty_registration.lennox import register_lennox_warranty
 from tasks.warranty_registration.trane import register_trane_warranty
+from tasks.warranty_registration.rheem import register_rheem_warranty
 
 load_dotenv()
 
@@ -19,7 +20,8 @@ warranty_registration_methods = {
   manufacturers['Lennox']: register_lennox_warranty,
   manufacturers['Trane']: register_trane_warranty,
   manufacturers['Daikin']: register_daikin_warranty,
-  manufacturers['Goodman']: register_daikin_warranty
+  manufacturers['Goodman']: register_daikin_warranty,
+  manufacturers['Rheem']: register_rheem_warranty
 }
 
 

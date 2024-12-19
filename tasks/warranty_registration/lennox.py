@@ -407,7 +407,7 @@ def register_lennox_warranty(payload, systems) -> tuple[Union[str, None], Union[
     file_data = base64.decodebytes(bytes(file_base64_str, 'utf-8'))
 
     uploaded_pdf_path = upload_warranty_pdf_to_s3(
-      file_data, {'job_id': payload['job_id'], 'manufacturer_name': 'lennox'})
+      file_data, [payload['job_id'], 'lennox'])
     return uploaded_pdf_path, None
 
     # ---------------------
