@@ -1,5 +1,6 @@
 import json
 import requests
+import re
 
 from dateutil.relativedelta import relativedelta
 from dateutil.parser import parse as dateparse
@@ -36,25 +37,50 @@ def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equip
     page.locator('.warranty-body').click()
     cells = page.locator('.warranty-body').locator('tr td:nth-child(3)').all()
     cell_data = [cell.text_content().strip() for cell in cells]
+    print('cell_data:', cell_data)
     if len(cell_data) < 8:
       return None
 
-    serial, model, heater_type, mfg_date_str, original_mfg_date_str, warranty_length, warranty_expire_date_str, registration_status, *rest = cell_data
+    serial, model, heater_type, mfg_date_str, original_mfg_date_str, warranty_length, warranty_expire_date_str, registration_status, registration_date_str, *rest = cell_data
     if len(rest) > 0:
       print('Unexpected extra data:', rest)
 
     mfg_date = dateparse(mfg_date_str)
-    warranty_expire_date = dateparse(warranty_expire_date_str.replace('*', ''))
-    install_date = (warranty_expire_date - relativedelta(years=6)).timestamp()
+
+    warranty_expire_date = None
+    install_date = None
+    registration_date = None
+
+    try:
+      match = re.match(r'^Tank - (.+), Parts - (.+)$',
+                       warranty_expire_date_str)
+      if match:
+        tank_expire_date = match.group(1)
+        parts_expire_date = match.group(2)
+        print('Tank:', tank_expire_date, 'Parts:', parts_expire_date)
+        warranty_expire_date = dateparse(tank_expire_date)
+      else:
+        warranty_expire_date = dateparse(
+          warranty_expire_date_str.replace('*', ''))
+
+      install_date = (warranty_expire_date -
+                      relativedelta(years=6)).timestamp()
+    except Exception as e:
+      print('Error parsing warranty expire date:', e)
+
+    try:
+      registration_date = dateparse(registration_date_str)
+    except Exception as e:
+      print('Error parsing registration date:', e)
 
     return {
       "certificate": None,
       "install_date": install_date,
-      "is_registered": registration_status != 'Not Registered',
+      "is_registered": registration_status == 'Registered',
       "last_name_match": False,
       "manufacture_date": mfg_date.timestamp(),
       "model_number": model,
-      "register_date": None,
+      "register_date": registration_date.timestamp(),
       "shipped_date": None,
       "warranties": [
           {
