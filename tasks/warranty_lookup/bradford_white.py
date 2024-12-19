@@ -85,7 +85,7 @@ def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equip
       "last_name_match": False,
       "manufacture_date": mfg_date.timestamp(),
       "model_number": model,
-      "register_date": registration_date.timestamp(),
+      "register_date": registration_date.timestamp() if registration_date else None,
       "shipped_date": None,
       "warranties": [
           {
