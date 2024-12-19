@@ -31,7 +31,7 @@ def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equip
     error_text = '\n'.join([text for text in filtered_error_texts if text])
     if len(filtered_error_texts) > 0:
       print(f'Error with serial {serial_number}:', error_text)
-      return None
+      return None, None
 
     page.pause()
 
@@ -40,7 +40,7 @@ def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equip
     cell_data = [cell.text_content().strip() for cell in cells]
     print('cell_data:', cell_data)
     if len(cell_data) < 8:
-      return None
+      return None, None
 
     serial, model, heater_type, mfg_date_str, original_mfg_date_str, warranty_length, warranty_expire_date_str, registration_status, *rest = cell_data
     registration_date_str = None
@@ -89,7 +89,7 @@ def get_bradford_white_warranty(serial_number, instant, equipment_scan_id, equip
       "shipped_date": None,
       "warranties": [
           {
-              "end_date": warranty_expire_date.timestamp(),
+              "end_date": warranty_expire_date.timestamp() if warranty_expire_date else None,
               "name": "Glass Lined Tank and Parts",
               "start_date": install_date
           }
