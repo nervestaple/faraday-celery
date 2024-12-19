@@ -150,7 +150,9 @@ def fill_address(page: Page, payload):
   owner_email = payload.get('owner_email')
   owner_phone = payload.get('owner_phone')
   installer_email = payload.get('installer_email')
+  installer_phone = payload.get('installer_phone')
 
+  owner_phone = owner_phone if owner_phone else installer_phone
   owner_email = owner_email if owner_email else installer_email
 
   page.get_by_placeholder("Enter first name").click()

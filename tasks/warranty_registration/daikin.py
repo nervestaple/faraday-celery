@@ -15,10 +15,14 @@ def register_daikin_warranty(payload, systems) -> tuple[Union[str, None], Union[
 
     for system_equipment in systems:
       for equipment in system_equipment:
+        serial_number = equipment.get('serial_number')
+
         page.get_by_role("textbox", name="Serial number").click(timeout=2000)
-        page.get_by_role("textbox", name="Serial number").fill(
-          equipment.get('serial_number'))
+        page.get_by_role("textbox", name="Serial number").fill(serial_number)
+
+        page.pause()
         page.get_by_text("1Product Info2Customer").click()
+        page.wait_for_load_state('networkidle')
 
         try:
           page.get_by_text(
@@ -29,7 +33,7 @@ def register_daikin_warranty(payload, systems) -> tuple[Union[str, None], Union[
             f"Serial number previously registered: {equipment.get('serial_number')}")
           return None, error
         except Exception as e:
-          print("serial number not registered")
+          pass
 
         try:
           page.get_by_role(
